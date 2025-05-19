@@ -3,9 +3,13 @@ import LoginForm from '@/components/LoginForm.vue';
 import VueRouter from 'vue-router';
 import Vuetify from 'vuetify';
 import Vue from 'vue';
-import axios from 'axios';
+import { Auth } from 'aws-amplify';
 
-jest.mock('axios');
+jest.mock('aws-amplify', () => ({
+  Auth: {
+    signIn: jest.fn(),
+  },
+}));
 
 Vue.use(Vuetify);
 const localVue = createLocalVue();
@@ -38,26 +42,26 @@ describe('LoginForm.vue', () => {
     expect(wrapper.vm.errorMessage).toBe('Email and Password are required!');
   });
 
-  it('calls API and shows success message on valid login', async () => {
-    axios.post.mockResolvedValue({ data: { success: true } });
+  it('calls Amplify Auth.signIn and shows success message on valid login', async () => {
+    // Mock the success response from Cognito (Amplify Auth)
+    Auth.signIn.mockResolvedValue({
+      username: 'test@example.com',
+    });
 
     await wrapper.setData({ email: 'test@example.com', password: '1234' });
     const routerPush = jest.spyOn(wrapper.vm.$router, 'push');
 
     await wrapper.vm.validateForm();
 
-    expect(axios.post).toHaveBeenCalledWith('http://127.0.0.1:5000/login', {
-      email: 'test@example.com',
-      password: '1234',
-    });
-
+    expect(Auth.signIn).toHaveBeenCalledWith('test@example.com', '1234');
     expect(wrapper.vm.successMessage).toBe('Login successful!');
     expect(sessionStorage.getItem('isLoggedIn')).toBe('true');
     expect(routerPush).toHaveBeenCalledWith('/wishlist');
   });
 
   it('shows error message on login failure', async () => {
-    axios.post.mockResolvedValue({ data: { success: false } });
+    // Mock the failure response from Cognito (Amplify Auth)
+    Auth.signIn.mockRejectedValue(new Error('Invalid credentials'));
 
     await wrapper.setData({ email: 'test@example.com', password: 'wrong' });
     await wrapper.vm.validateForm();
@@ -65,8 +69,9 @@ describe('LoginForm.vue', () => {
     expect(wrapper.vm.errorMessage).toBe('Invalid credentials.');
   });
 
-  it('shows server error on network failure', async () => {
-    axios.post.mockRejectedValue(new Error('Network error'));
+  it('shows error message on network failure', async () => {
+    // Mock the network failure
+    Auth.signIn.mockRejectedValue(new Error('Network error'));
 
     await wrapper.setData({ email: 'test@example.com', password: '1234' });
     await wrapper.vm.validateForm();
