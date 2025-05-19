@@ -1,141 +1,167 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import pyodbc
+import psycopg2
 import os
+import jwt
+import requests
 from dotenv import load_dotenv
+from functools import wraps
+
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-load_dotenv()
-
+# Database configuration from environment variables
 db_config = {
-    'server': os.getenv('DB_SERVER'),
-    'database': os.getenv('DB_NAME'),
-    'username': os.getenv('DB_USER'),
+    'host': os.getenv('DB_HOST'),
+    'dbname': os.getenv('DB_NAME'),
+    'user': os.getenv('DB_USER'),
     'password': os.getenv('DB_PASSWORD'),
-    'driver': '{ODBC Driver 17 for SQL Server}'
+    'port': os.getenv('DB_PORT', 5432)
 }
 
-if not all(db_config.values()):
-    raise ValueError("One or more environment variables are missing")
+COGNITO_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
+COGNITO_REGION = os.getenv("COGNITO_REGION")
+COGNITO_APP_CLIENT_ID = os.getenv("COGNITO_APP_CLIENT_ID")
 
-def get_connection():
-    conn_str = (
-        f"DRIVER={db_config['driver']};"
-        f"SERVER={db_config['server']};"
-        f"DATABASE={db_config['database']};"
-        f"UID={db_config['username']};"
-        f"PWD={db_config['password']};"
-        f"Encrypt=yes;TrustServerCertificate=yes"
-    )
-    return pyodbc.connect(conn_str)
+JWKS_URL = f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_POOL_ID}/.well-known/jwks.json"
+JWKS = requests.get(JWKS_URL).json()
 
 
-@app.route('/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
+def get_db_connection():
+    return psycopg2.connect(**db_config)
 
-    if not email or not password:
-        return jsonify({"success": False, "message": "Email and password required"}), 400
 
+def decode_token(token):
     try:
-        with get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT id FROM Users WHERE email = ? AND password = ?", email, password)
-            user = cursor.fetchone()
-            if user:
-                return jsonify({"success": True})
-            else:
-                return jsonify({"success": False}), 401
+        headers = jwt.get_unverified_header(token)
+        kid = headers["kid"]
+        key = next((k for k in JWKS["keys"] if k["kid"] == kid), None)
+
+        if not key:
+            raise Exception("Public key not found in JWKS")
+
+        public_key = jwt.algorithms.RSAAlgorithm.from_jwk(key)
+        decoded = jwt.decode(
+            token,
+            public_key,
+            algorithms=["RS256"],
+            audience=COGNITO_APP_CLIENT_ID,
+            issuer=f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_POOL_ID}"
+        )
+        return decoded
     except Exception as e:
-        app.logger.error(f"Login error: {e}")
-        return jsonify({"success": False, "message": "Server error"}), 500
+        app.logger.error(f"Token decode error: {e}")
+        return None
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        auth_header = request.headers.get("Authorization", "")
+        token = auth_header.replace("Bearer ", "")
+        user = decode_token(token)
+        if not user:
+            return jsonify({"error": "Unauthorized"}), 401
+        request.user = user
+        return f(*args, **kwargs)
+    return decorated_function
+
 
 @app.route('/stocks', methods=['GET'])
+@login_required
 def get_stocks():
     try:
-        with get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM Stocks WHERE quantity > 0")
-            columns = [column[0] for column in cursor.description]
-            results = [dict(zip(columns, row)) for row in cursor.fetchall()]
-            return jsonify(results)
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT * FROM Stocks WHERE quantity > 0")
+                rows = cur.fetchall()
+                colnames = [desc[0] for desc in cur.description]
+                stocks = [dict(zip(colnames, row)) for row in rows]
+                return jsonify(stocks)
     except Exception as e:
         app.logger.error(f"Error fetching stocks: {e}")
-        return {'error': 'Error fetching stocks'}, 500
+        return jsonify({'error': 'Error fetching stocks'}), 500
+
 
 @app.route('/wishlist', methods=['GET'])
+@login_required
 def get_wishlist():
+    user_sub = request.user.get("sub")
     try:
-        with get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("""
-                SELECT w.user_id, s.id as stock_id, s.name 
-                FROM Wishlist w 
-                JOIN Stocks s ON w.stock_id = s.id
-            """)
-            columns = [column[0] for column in cursor.description]
-            results = [dict(zip(columns, row)) for row in cursor.fetchall()]
-            return jsonify(results)
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT w.user_sub, s.id AS stock_id, s.name
+                    FROM Wishlist w
+                    JOIN Stocks s ON w.stock_id = s.id
+                    WHERE w.user_sub = %s
+                """, (user_sub,))
+                rows = cur.fetchall()
+                colnames = [desc[0] for desc in cur.description]
+                wishlist = [dict(zip(colnames, row)) for row in rows]
+                return jsonify(wishlist)
     except Exception as e:
         app.logger.error(f"Error fetching wishlist: {e}")
-        return {'error': 'Error fetching wishlist'}, 500
+        return jsonify({'error': 'Error fetching wishlist'}), 500
+
 
 @app.route('/wishlist', methods=['POST'])
+@login_required
 def add_to_wishlist():
+    user_sub = request.user.get("sub")
     data = request.get_json()
-    user_id = data.get('user_id')
     stock_id = data.get('stock_id')
 
     try:
-        with get_connection() as conn:
-            cursor = conn.cursor()
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                # Check stock availability
+                cur.execute("SELECT quantity FROM Stocks WHERE id = %s", (stock_id,))
+                row = cur.fetchone()
+                if not row or row[0] <= 0:
+                    return jsonify({'error': 'Stock not available'}), 400
 
-            # Check stock availability
-            cursor.execute("SELECT quantity FROM Stocks WHERE id = ?", stock_id)
-            row = cursor.fetchone()
-
-            if not row or row[0] <= 0:
-                return {'error': 'Stock not available'}, 400
-
-            # Insert into wishlist
-            cursor.execute("INSERT INTO Wishlist (user_id, stock_id) VALUES (?, ?)", user_id, stock_id)
-
-            # Decrease stock quantity
-            cursor.execute("UPDATE Stocks SET quantity = quantity - 1 WHERE id = ?", stock_id)
-
-            conn.commit()
-            return {'message': 'Stock added to wishlist'}, 200
-
+                # Add to wishlist and update stock
+                cur.execute("INSERT INTO Wishlist (user_sub, stock_id) VALUES (%s, %s)", (user_sub, stock_id))
+                cur.execute("UPDATE Stocks SET quantity = quantity - 1 WHERE id = %s", (stock_id,))
+                conn.commit()
+                return jsonify({'message': 'Stock added to wishlist'}), 200
     except Exception as e:
-        app.logger.error(f"Error adding stock to wishlist: {e}")
-        return {'error': 'Error adding stock to wishlist'}, 500
+        app.logger.error(f"Error adding to wishlist: {e}")
+        return jsonify({'error': 'Error adding to wishlist'}), 500
+
 
 @app.route('/wishlist', methods=['DELETE'])
+@login_required
 def remove_from_wishlist():
+    user_sub = request.user.get("sub")
     data = request.get_json()
-    user_id = data.get('user_id')
     stock_id = data.get('stock_id')
 
     try:
-        with get_connection() as conn:
-            cursor = conn.cursor()
-
-            # Remove from wishlist
-            cursor.execute("DELETE FROM Wishlist WHERE user_id = ? AND stock_id = ?", user_id, stock_id)
-
-            # Increase stock quantity
-            cursor.execute("UPDATE Stocks SET quantity = quantity + 1 WHERE id = ?", stock_id)
-
-            conn.commit()
-            return {'message': 'Stock removed from wishlist'}, 200
-
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM Wishlist WHERE user_sub = %s AND stock_id = %s", (user_sub, stock_id))
+                cur.execute("UPDATE Stocks SET quantity = quantity + 1 WHERE id = %s", (stock_id,))
+                conn.commit()
+                return jsonify({'message': 'Stock removed from wishlist'}), 200
     except Exception as e:
-        app.logger.error(f"Error removing stock from wishlist: {e}")
-        return {'error': 'Error removing stock from wishlist'}, 500
+        app.logger.error(f"Error removing from wishlist: {e}")
+        return jsonify({'error': 'Error removing from wishlist'}), 500
+
+
+@app.route('/')
+def health_check():
+    return jsonify({'message': 'Server is running'})
+
+
+# For AWS Lambda support
+def handler(event, context):
+    from awsgi import response
+    return response(app, event, context)
+
 
 if __name__ == '__main__':
     port = int(os.getenv("PORT", 5000))
