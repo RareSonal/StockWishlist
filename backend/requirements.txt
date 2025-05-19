@@ -1,6 +1,7 @@
-flask
+Flask
 flask-cors
 psycopg2
-requests
 PyJWT
-pytest
+awsgi
+requests
+python-dotenv
