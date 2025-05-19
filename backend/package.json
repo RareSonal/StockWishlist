@@ -13,16 +13,16 @@
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
-    "flask": "^2.1.2",                  // Flask for the Python web framework
-    "flask-cors": "^3.1.1",             // Flask CORS
-    "psycopg2": "^2.9.10",              // PostgreSQL client
-    "requests": "^2.32.3",              // HTTP requests, if you need to make requests (optional)
-    "PyJWT": "^2.10.1"                  // JWT library for Python
+    "flask": "^2.1.2",                  
+    "flask-cors": "^3.1.1",             
+    "psycopg2": "^2.9.10",              
+    "requests": "^2.32.3",              
+    "PyJWT": "^2.10.1"                  
   },
   "devDependencies": {
     "jest": "^29.7.0",
     "jest-mock": "^29.7.0",
     "supertest": "^7.1.1",
-    "pytest": "^7.2.0"                 // Adding pytest for Python testing
+    "pytest": "^7.2.0"                 
   }
 }
