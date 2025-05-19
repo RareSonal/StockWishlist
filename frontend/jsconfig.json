@@ -1,19 +1,28 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "module": "esnext",
-    "baseUrl": "./",
-    "moduleResolution": "node",
+    "target": "esnext",              // Using ESNext to take advantage of modern JavaScript features
+    "module": "esnext",              // Keep modules in ESNext format, necessary for tree-shaking and modern bundlers like Webpack
+    "baseUrl": "./",                 // Set the base directory for non-relative module imports
+    "moduleResolution": "node",      // Resolve modules like Node.js does, compatible with npm/yarn
     "paths": {
-      "@/*": [
-        "src/*"
-      ]
+      "@/*": ["src/*"]               // Alias for easier imports, used for files inside 'src' folder
     },
     "lib": [
-      "esnext",
-      "dom",
-      "dom.iterable",
-      "scripthost"
-    ]
-  }
+      "esnext",                      // Include modern JavaScript features and polyfills
+      "dom",                          // DOM library to support the browser environment
+      "dom.iterable",                 // Iterators for DOM objects (useful for loops)
+      "scripthost"                    // For Node.js host objects (may be helpful if you're using server-side code with Vue)
+    ],
+    "jsx": "preserve",               // To handle JSX in case you need it in future (though Vue typically uses templates)
+    "strict": true,                  // Enable strict type checking for better code quality
+    "esModuleInterop": true,         // Allow for interoperability between CommonJS and ES Modules
+    "skipLibCheck": true,            // Skip type checking of declaration files (improves build performance)
+    "forceConsistentCasingInFileNames": true // Ensure consistent casing for file names across different OS
+  },
+  "include": [
+    "src/**/*"                        // Include all files in the 'src' directory
+  ],
+  "exclude": [
+    "node_modules"                    // Exclude 'node_modules' to avoid unnecessary checks
+  ]
 }
