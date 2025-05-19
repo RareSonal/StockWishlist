@@ -3,19 +3,20 @@ import os
 import pytest
 from unittest import mock
 from unittest.mock import MagicMock
+import psycopg2  # Change to psycopg2 for PostgreSQL
 
 # Fix the import path for 'server.py'
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from server import app  # Now 'server' should be importable
-import pyodbc
+import jwt
 
 @pytest.fixture
 def client():
     with app.test_client() as client:
         yield client
 
-# Helper function to mock pyodbc connection with context management
+# Helper function to mock psycopg2 connection with context management
 def make_mock_connection(mock_cursor):
     mock_conn = MagicMock()
     mock_conn.cursor.return_value = mock_cursor
@@ -33,21 +34,21 @@ def test_login_valid(client):
     mock_cursor.fetchone.return_value = (1,)  # User found
     mock_connect = make_mock_connection(mock_cursor)
 
-    with mock.patch.object(pyodbc, 'connect', return_value=mock_connect):
+    with mock.patch.object(psycopg2, 'connect', return_value=mock_connect):
         response = client.post('/login', json={
             'email': 'test@example.com',
             'password': 'password123'
         })
         assert response.status_code == 200
         assert response.json['success'] is True
-
+        assert 'token' in response.json  # Ensure token is returned
 
 def test_login_invalid(client):
     mock_cursor = mock.Mock()
     mock_cursor.fetchone.return_value = None  # No user found
     mock_connect = make_mock_connection(mock_cursor)
 
-    with mock.patch.object(pyodbc, 'connect', return_value=mock_connect):
+    with mock.patch.object(psycopg2, 'connect', return_value=mock_connect):
         response = client.post('/login', json={
             'email': 'test@example.com',
             'password': 'wrongpassword'
@@ -55,20 +56,18 @@ def test_login_invalid(client):
         assert response.status_code == 401
         assert response.json['success'] is False
 
-
 def test_get_stocks(client):
     mock_cursor = mock.Mock()
     mock_cursor.description = [('id',), ('name',), ('quantity',)]
     mock_cursor.fetchall.return_value = [(1, 'Stock 1', 10)]
     mock_connect = make_mock_connection(mock_cursor)
 
-    with mock.patch.object(pyodbc, 'connect', return_value=mock_connect):
+    with mock.patch.object(psycopg2, 'connect', return_value=mock_connect):
         response = client.get('/stocks')
         assert response.status_code == 200
         assert isinstance(response.json, list)
         assert len(response.json) == 1
         assert response.json[0]['name'] == 'Stock 1'
-
 
 def test_get_wishlist(client):
     mock_cursor = mock.Mock()
@@ -76,9 +75,48 @@ def test_get_wishlist(client):
     mock_cursor.fetchall.return_value = [(1, 1, 'Stock 1')]
     mock_connect = make_mock_connection(mock_cursor)
 
-    with mock.patch.object(pyodbc, 'connect', return_value=mock_connect):
-        response = client.get('/wishlist')
+    # Mock token in header to authorize the user
+    headers = {
+        'Authorization': 'Bearer ' + jwt.encode({'user_id': 1}, 'dev-secret', algorithm='HS256')
+    }
+
+    with mock.patch.object(psycopg2, 'connect', return_value=mock_connect):
+        response = client.get('/wishlist', headers=headers)
         assert response.status_code == 200
         assert isinstance(response.json, list)
         assert len(response.json) == 1
         assert response.json[0]['name'] == 'Stock 1'
+
+def test_add_to_wishlist(client):
+    mock_cursor = mock.Mock()
+    mock_cursor.fetchone.return_value = (1,)  # Stock available
+    mock_connect = make_mock_connection(mock_cursor)
+
+    # Mock token in header to authorize the user
+    headers = {
+        'Authorization': 'Bearer ' + jwt.encode({'user_id': 1}, 'dev-secret', algorithm='HS256')
+    }
+
+    with mock.patch.object(psycopg2, 'connect', return_value=mock_connect):
+        response = client.post('/wishlist', json={
+            'stock_id': 1
+        }, headers=headers)
+        assert response.status_code == 200
+        assert response.json['message'] == 'Stock added to wishlist'
+
+def test_remove_from_wishlist(client):
+    mock_cursor = mock.Mock()
+    mock_cursor.fetchone.return_value = (1,)  # Stock available
+    mock_connect = make_mock_connection(mock_cursor)
+
+    # Mock token in header to authorize the user
+    headers = {
+        'Authorization': 'Bearer ' + jwt.encode({'user_id': 1}, 'dev-secret', algorithm='HS256')
+    }
+
+    with mock.patch.object(psycopg2, 'connect', return_value=mock_connect):
+        response = client.delete('/wishlist', json={
+            'stock_id': 1
+        }, headers=headers)
+        assert response.status_code == 200
+        assert response.json['message'] == 'Stock removed from wishlist'
