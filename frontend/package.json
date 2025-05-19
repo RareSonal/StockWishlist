@@ -5,12 +5,14 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
     "test": "jest",
     "test:unit": "jest"
   },
   "dependencies": {
+    "@aws-amplify/ui-vue": "^1.1.20",
     "@mdi/font": "^7.4.47",
+    "aws-amplify": "^4.3.46",
     "axios": "^1.8.4",
     "core-js": "^3.8.3",
     "email-validator": "^2.0.4",
@@ -19,7 +21,7 @@
     "vuetify": "^2.6.15"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.16",
+    "@babel/core": "^7.27.1",
     "@babel/eslint-parser": "^7.12.16",
     "@vue/cli-plugin-babel": "^5.0.8",
     "@vue/cli-plugin-eslint": "~5.0.0",
@@ -36,7 +38,7 @@
     "sass-loader": "^10.5.2",
     "vue-cli-plugin-vuetify": "^2.5.8",
     "vue-devtools": "^5.1.4",
-    "vue-template-compiler": "^2.6.14",
+    "vue-template-compiler": "^2.7.16",
     "vuetify-loader": "^1.9.2"
   },
   "eslintConfig": {
