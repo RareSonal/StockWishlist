@@ -28,7 +28,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import { Auth } from 'aws-amplify';
 
 export default {
   name: "LoginForm",
@@ -41,37 +41,31 @@ export default {
     };
   },
   methods: {
-  async validateForm() {
-    this.successMessage = "";
-    this.errorMessage = "";
+    async validateForm() {
+      this.successMessage = "";
+      this.errorMessage = "";
 
-    if (!this.email || !this.password) {
-      this.errorMessage = "Email and Password are required!";
-      return;
-    }
-
-    try {
-      const response = await axios.post("http://127.0.0.1:5000/login", {
-        email: this.email,
-        password: this.password,
-      });
-
-      if (response.data.success) {
-        this.successMessage = "Login successful!";
-        
-        // Store login state in localStorage
-        sessionStorage.setItem('isLoggedIn', 'true');
-
-        // Use this.$router.push to navigate to the wishlist page
-        this.$router.push("/wishlist");
-      } else {
-        this.errorMessage = "Invalid credentials.";
+      if (!this.email || !this.password) {
+        this.errorMessage = "Email and Password are required!";
+        return;
       }
-    } catch (error) {
-      this.errorMessage = "Server error or invalid credentials.";
-    }
+
+      try {
+        const user = await Auth.signIn(this.email, this.password);
+        this.successMessage = "Login successful!";
+        sessionStorage.setItem("isLoggedIn", "true");
+
+        this.$router.push("/wishlist");
+      } catch (error) {
+        if (error.code === "UserNotConfirmedException") {
+          this.errorMessage = "User not confirmed. Please check your email.";
+        } else if (error.code === "NotAuthorizedException") {
+          this.errorMessage = "Incorrect email or password.";
+        } else {
+          this.errorMessage = "Login failed. Please try again.";
+        }
+      }
+    },
   },
-  
-},
 };
 </script>
