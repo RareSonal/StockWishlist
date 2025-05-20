@@ -77,7 +77,7 @@ def test_get_wishlist(client):
 
     # Mock token in header to authorize the user
     headers = {
-        'Authorization': 'Bearer ' + jwt.encode({'user_id': 1}, 'dev-secret', algorithm='HS256')
+        'Authorization': 'Bearer ' + jwt.encode({'sub': 'test-user'}, 'dev-secret', algorithm='HS256')
     }
 
     with mock.patch.object(psycopg2, 'connect', return_value=mock_connect):
@@ -94,7 +94,7 @@ def test_add_to_wishlist(client):
 
     # Mock token in header to authorize the user
     headers = {
-        'Authorization': 'Bearer ' + jwt.encode({'user_id': 1}, 'dev-secret', algorithm='HS256')
+        'Authorization': 'Bearer ' + jwt.encode({'sub': 'test-user'}, 'dev-secret', algorithm='HS256')
     }
 
     with mock.patch.object(psycopg2, 'connect', return_value=mock_connect):
@@ -111,7 +111,7 @@ def test_remove_from_wishlist(client):
 
     # Mock token in header to authorize the user
     headers = {
-        'Authorization': 'Bearer ' + jwt.encode({'user_id': 1}, 'dev-secret', algorithm='HS256')
+        'Authorization': 'Bearer ' + jwt.encode({'sub': 'test-user'}, 'dev-secret', algorithm='HS256')
     }
 
     with mock.patch.object(psycopg2, 'connect', return_value=mock_connect):
