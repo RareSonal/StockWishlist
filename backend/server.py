@@ -26,12 +26,20 @@ COGNITO_REGION = os.getenv("COGNITO_REGION")
 COGNITO_APP_CLIENT_ID = os.getenv("COGNITO_APP_CLIENT_ID")
 
 JWKS_URL = f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_POOL_ID}/.well-known/jwks.json"
-JWKS = requests.get(JWKS_URL).json()
 
+# Safe JWKS fetcher with error handling
+def get_jwks():
+    try:
+        resp = requests.get(JWKS_URL, timeout=3)
+        return resp.json()
+    except Exception as e:
+        app.logger.error(f"Failed to fetch JWKS: {e}")
+        return None
+
+JWKS = get_jwks()
 
 def get_db_connection():
     return psycopg2.connect(**db_config)
-
 
 def decode_token(token):
     try:
@@ -55,7 +63,6 @@ def decode_token(token):
         app.logger.error(f"Token decode error: {e}")
         return None
 
-
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -67,7 +74,6 @@ def login_required(f):
         request.user = user
         return f(*args, **kwargs)
     return decorated_function
-
 
 @app.route('/stocks', methods=['GET'])
 @login_required
@@ -83,7 +89,6 @@ def get_stocks():
     except Exception as e:
         app.logger.error(f"Error fetching stocks: {e}")
         return jsonify({'error': 'Error fetching stocks'}), 500
-
 
 @app.route('/wishlist', methods=['GET'])
 @login_required
@@ -105,7 +110,6 @@ def get_wishlist():
     except Exception as e:
         app.logger.error(f"Error fetching wishlist: {e}")
         return jsonify({'error': 'Error fetching wishlist'}), 500
-
 
 @app.route('/wishlist', methods=['POST'])
 @login_required
@@ -132,7 +136,6 @@ def add_to_wishlist():
         app.logger.error(f"Error adding to wishlist: {e}")
         return jsonify({'error': 'Error adding to wishlist'}), 500
 
-
 @app.route('/wishlist', methods=['DELETE'])
 @login_required
 def remove_from_wishlist():
@@ -151,17 +154,14 @@ def remove_from_wishlist():
         app.logger.error(f"Error removing from wishlist: {e}")
         return jsonify({'error': 'Error removing from wishlist'}), 500
 
-
 @app.route('/')
 def health_check():
     return jsonify({'message': 'Server is running'})
-
 
 # For AWS Lambda support
 def handler(event, context):
     from awsgi import response
     return response(app, event, context)
-
 
 if __name__ == '__main__':
     port = int(os.getenv("PORT", 5000))
