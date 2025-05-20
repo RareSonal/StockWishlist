@@ -6,8 +6,11 @@ import jwt
 import requests
 from dotenv import load_dotenv
 from functools import wraps
+import logging
 
+# Initialize environment variables and logging
 load_dotenv()
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 CORS(app)
@@ -39,7 +42,12 @@ def get_jwks():
 JWKS = get_jwks()
 
 def get_db_connection():
-    return psycopg2.connect(**db_config)
+    try:
+        conn = psycopg2.connect(**db_config)
+        return conn
+    except Exception as e:
+        app.logger.error(f"Database connection error: {e}")
+        raise
 
 def decode_token(token):
     try:
@@ -70,6 +78,7 @@ def login_required(f):
         token = auth_header.replace("Bearer ", "")
         user = decode_token(token)
         if not user:
+            app.logger.warning("Unauthorized access attempt")
             return jsonify({"error": "Unauthorized"}), 401
         request.user = user
         return f(*args, **kwargs)
@@ -85,7 +94,7 @@ def get_stocks():
                 rows = cur.fetchall()
                 colnames = [desc[0] for desc in cur.description]
                 stocks = [dict(zip(colnames, row)) for row in rows]
-                return jsonify(stocks)
+        return jsonify(stocks)
     except Exception as e:
         app.logger.error(f"Error fetching stocks: {e}")
         return jsonify({'error': 'Error fetching stocks'}), 500
@@ -106,7 +115,7 @@ def get_wishlist():
                 rows = cur.fetchall()
                 colnames = [desc[0] for desc in cur.description]
                 wishlist = [dict(zip(colnames, row)) for row in rows]
-                return jsonify(wishlist)
+        return jsonify(wishlist)
     except Exception as e:
         app.logger.error(f"Error fetching wishlist: {e}")
         return jsonify({'error': 'Error fetching wishlist'}), 500
@@ -131,7 +140,8 @@ def add_to_wishlist():
                 cur.execute("INSERT INTO Wishlist (user_sub, stock_id) VALUES (%s, %s)", (user_sub, stock_id))
                 cur.execute("UPDATE Stocks SET quantity = quantity - 1 WHERE id = %s", (stock_id,))
                 conn.commit()
-                return jsonify({'message': 'Stock added to wishlist'}), 200
+
+        return jsonify({'message': 'Stock added to wishlist'}), 200
     except Exception as e:
         app.logger.error(f"Error adding to wishlist: {e}")
         return jsonify({'error': 'Error adding to wishlist'}), 500
@@ -149,13 +159,15 @@ def remove_from_wishlist():
                 cur.execute("DELETE FROM Wishlist WHERE user_sub = %s AND stock_id = %s", (user_sub, stock_id))
                 cur.execute("UPDATE Stocks SET quantity = quantity + 1 WHERE id = %s", (stock_id,))
                 conn.commit()
-                return jsonify({'message': 'Stock removed from wishlist'}), 200
+
+        return jsonify({'message': 'Stock removed from wishlist'}), 200
     except Exception as e:
         app.logger.error(f"Error removing from wishlist: {e}")
         return jsonify({'error': 'Error removing from wishlist'}), 500
 
 @app.route('/')
 def health_check():
+    app.logger.info("Health check successful")
     return jsonify({'message': 'Server is running'})
 
 # For AWS Lambda support
