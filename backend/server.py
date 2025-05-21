@@ -171,9 +171,9 @@ def health_check():
     return jsonify({'message': 'Server is running'})
 
 # For AWS Lambda support
-def handler(event, context):
-    from awsgi import response
-    return response(app, event, context)
+def handler(event, context): 
+    import awsgi 
+    return awsgi.response(app, event, context)
 
 if __name__ == '__main__':
     port = int(os.getenv("PORT", 5000))
