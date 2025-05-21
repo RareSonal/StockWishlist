@@ -73,6 +73,32 @@ def decode_token(token):
     except Exception as e:
         app.logger.error(f"Token decode error: {e}")
         return None
+    def decode_token(token):
+    try:
+        headers = jwt.get_unverified_header(token)
+        kid = headers["kid"]
+        key = next((k for k in JWKS["keys"] if k["kid"] == kid), None)
+
+        if not key:
+            raise Exception("Public key not found in JWKS")
+
+        public_key = jwt.algorithms.RSAAlgorithm.from_jwk(key)
+        decoded = jwt.decode(
+            token,
+            public_key,
+            algorithms=["RS256"],
+            audience=COGNITO_APP_CLIENT_ID,
+            issuer=f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_POOL_ID}"
+        )
+        return decoded
+    except Exception as e:
+        app.logger.error(f"Token decode error: {e}")
+        return None
+
+# ADD THIS AFTER decode_token() TO OVERRIDE IN TESTS
+if os.getenv("FLASK_ENV") == "test":
+    def decode_token(token):
+        return {"sub": "test-user"}
 
 def login_required(f):
     @wraps(f)
