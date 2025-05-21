@@ -16,7 +16,7 @@ const router = new Router({
     },
     { 
       path: '/wishlist', 
-      component: Wishlist, 
+      component: WishlistPage, 
       meta: { requiresAuth: true } // Wishlist route, requires authentication
     },
     { 
