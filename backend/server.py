@@ -55,6 +55,7 @@ def get_db_connection():
 
 def decode_token(token):
     try:
+        jwks = get_jwks()  # <- fetch fresh JWKS every time
         if not JWKS or "keys" not in JWKS:
             raise Exception("Invalid JWKS")  # Fix for empty/missing JWKS
 
