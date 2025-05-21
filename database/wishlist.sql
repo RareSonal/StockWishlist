@@ -1,977 +1,856 @@
-USE [master]
-GO
-/****** Object:  Database [stockwishlist]    Script Date: 08-05-2025 14:24:01 ******/
-CREATE DATABASE [stockwishlist]
- CONTAINMENT = NONE
- ON  PRIMARY 
-( NAME = N'stockwishlist', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL15.SQLEXPRESS\MSSQL\DATA\stockwishlist.mdf' , SIZE = 8192KB , MAXSIZE = UNLIMITED, FILEGROWTH = 65536KB )
- LOG ON 
-( NAME = N'stockwishlist_log', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL15.SQLEXPRESS\MSSQL\DATA\stockwishlist_log.ldf' , SIZE = 8192KB , MAXSIZE = 2048GB , FILEGROWTH = 65536KB )
- WITH CATALOG_COLLATION = DATABASE_DEFAULT
-GO
-ALTER DATABASE [stockwishlist] SET COMPATIBILITY_LEVEL = 150
-GO
-IF (1 = FULLTEXTSERVICEPROPERTY('IsFullTextInstalled'))
-begin
-EXEC [stockwishlist].[dbo].[sp_fulltext_database] @action = 'enable'
-end
-GO
-ALTER DATABASE [stockwishlist] SET ANSI_NULL_DEFAULT OFF 
-GO
-ALTER DATABASE [stockwishlist] SET ANSI_NULLS OFF 
-GO
-ALTER DATABASE [stockwishlist] SET ANSI_PADDING OFF 
-GO
-ALTER DATABASE [stockwishlist] SET ANSI_WARNINGS OFF 
-GO
-ALTER DATABASE [stockwishlist] SET ARITHABORT OFF 
-GO
-ALTER DATABASE [stockwishlist] SET AUTO_CLOSE OFF 
-GO
-ALTER DATABASE [stockwishlist] SET AUTO_SHRINK OFF 
-GO
-ALTER DATABASE [stockwishlist] SET AUTO_UPDATE_STATISTICS ON 
-GO
-ALTER DATABASE [stockwishlist] SET CURSOR_CLOSE_ON_COMMIT OFF 
-GO
-ALTER DATABASE [stockwishlist] SET CURSOR_DEFAULT  GLOBAL 
-GO
-ALTER DATABASE [stockwishlist] SET CONCAT_NULL_YIELDS_NULL OFF 
-GO
-ALTER DATABASE [stockwishlist] SET NUMERIC_ROUNDABORT OFF 
-GO
-ALTER DATABASE [stockwishlist] SET QUOTED_IDENTIFIER OFF 
-GO
-ALTER DATABASE [stockwishlist] SET RECURSIVE_TRIGGERS OFF 
-GO
-ALTER DATABASE [stockwishlist] SET  DISABLE_BROKER 
-GO
-ALTER DATABASE [stockwishlist] SET AUTO_UPDATE_STATISTICS_ASYNC OFF 
-GO
-ALTER DATABASE [stockwishlist] SET DATE_CORRELATION_OPTIMIZATION OFF 
-GO
-ALTER DATABASE [stockwishlist] SET TRUSTWORTHY OFF 
-GO
-ALTER DATABASE [stockwishlist] SET ALLOW_SNAPSHOT_ISOLATION OFF 
-GO
-ALTER DATABASE [stockwishlist] SET PARAMETERIZATION SIMPLE 
-GO
-ALTER DATABASE [stockwishlist] SET READ_COMMITTED_SNAPSHOT OFF 
-GO
-ALTER DATABASE [stockwishlist] SET HONOR_BROKER_PRIORITY OFF 
-GO
-ALTER DATABASE [stockwishlist] SET RECOVERY SIMPLE 
-GO
-ALTER DATABASE [stockwishlist] SET  MULTI_USER 
-GO
-ALTER DATABASE [stockwishlist] SET PAGE_VERIFY CHECKSUM  
-GO
-ALTER DATABASE [stockwishlist] SET DB_CHAINING OFF 
-GO
-ALTER DATABASE [stockwishlist] SET FILESTREAM( NON_TRANSACTED_ACCESS = OFF ) 
-GO
-ALTER DATABASE [stockwishlist] SET TARGET_RECOVERY_TIME = 60 SECONDS 
-GO
-ALTER DATABASE [stockwishlist] SET DELAYED_DURABILITY = DISABLED 
-GO
-ALTER DATABASE [stockwishlist] SET ACCELERATED_DATABASE_RECOVERY = OFF  
-GO
-ALTER DATABASE [stockwishlist] SET QUERY_STORE = OFF
-GO
-USE [stockwishlist]
-GO
-/****** Object:  Table [dbo].[Stocks]    Script Date: 08-05-2025 14:24:01 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE [dbo].[Stocks](
-	[id] [int] IDENTITY(1,1) NOT NULL,
-	[name] [varchar](255) NOT NULL,
-	[quantity] [int] NOT NULL,
-PRIMARY KEY CLUSTERED 
-(
-	[id] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY]
-GO
-/****** Object:  Table [dbo].[Users]    Script Date: 08-05-2025 14:24:01 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE [dbo].[Users](
-	[id] [int] IDENTITY(1,1) NOT NULL,
-	[email] [varchar](255) NOT NULL,
-	[password] [varchar](255) NOT NULL,
-PRIMARY KEY CLUSTERED 
-(
-	[id] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY]
-GO
-/****** Object:  Table [dbo].[Wishlist]    Script Date: 08-05-2025 14:24:01 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE [dbo].[Wishlist](
-	[user_id] [int] NOT NULL,
-	[stock_id] [int] NOT NULL,
-	[id] [int] IDENTITY(1,1) NOT NULL,
-PRIMARY KEY CLUSTERED 
-(
-	[id] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY]
-GO
-SET IDENTITY_INSERT [dbo].[Stocks] ON 
+-- Create the database (optional step if you already have one)
+-- CREATE DATABASE stockwishlist;
 
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (1, N'Apple Inc.', 50)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (2, N'Microsoft Corporation', 218)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (3, N'Alphabet Inc. (Google)', 439)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (4, N'Amazon.com Inc.', 415)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (5, N'Tesla Inc.', 424)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (6, N'Meta Platforms Inc. (Facebook)', 138)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (7, N'NVIDIA Corporation', 330)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (8, N'Berkshire Hathaway Inc.', 486)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (9, N'Visa Inc.', 55)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (10, N'Johnson & Johnson', 37)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (11, N'UnitedHealth Group', 60)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (12, N'JPMorgan Chase & Co.', 173)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (13, N'Mastercard Inc.', 318)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (14, N'Procter & Gamble Co.', 35)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (15, N'Home Depot Inc.', 500)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (16, N'Pfizer Inc.', 338)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (17, N'Coca-Cola Company', 160)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (18, N'PepsiCo Inc.', 432)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (19, N'Adobe Inc.', 270)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (20, N'Netflix Inc.', 182)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (21, N'Exxon Mobil Corporation', 269)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (22, N'Walmart Inc.', 371)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (23, N'Walt Disney Company', 107)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (24, N'Salesforce Inc.', 166)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (25, N'Intel Corporation', 78)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (26, N'Cisco Systems Inc.', 18)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (27, N'Oracle Corporation', 204)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (28, N'Qualcomm Inc.', 16)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (29, N'AT&T Inc.', 289)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (30, N'Verizon Communications', 401)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (31, N'Chevron Corporation', 363)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (32, N'Boeing Company', 317)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (33, N'McDonald’s Corporation', 387)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (34, N'AbbVie Inc.', 184)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (35, N'IBM Corporation', 470)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (36, N'American Express', 453)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (37, N'3M Company', 102)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (38, N'Costco Wholesale', 163)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (39, N'Starbucks Corporation', 368)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (40, N'Nike Inc.', 44)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (41, N'Ford Motor Company', 367)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (42, N'General Motors', 409)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (43, N'Zoom Video Communications', 351)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (44, N'Snowflake Inc.', 165)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (45, N'Shopify Inc.', 139)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (46, N'Palantir Technologies', 19)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (47, N'Roku Inc.', 2)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (48, N'Uber Technologies', 222)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (49, N'Airbnb Inc.', 485)
-INSERT [dbo].[Stocks] ([id], [name], [quantity]) VALUES (50, N'Block Inc. (Square)', 28)
-SET IDENTITY_INSERT [dbo].[Stocks] OFF
-GO
-SET IDENTITY_INSERT [dbo].[Users] ON 
+-- Table: stocks
+CREATE TABLE stocks (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    quantity INT NOT NULL
+);
 
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (1, N'sarah.walker6786@example.com', N'0C7E6^N0C7E')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (2, N'michael.allen1642@example.com', N'424E7*Y424E')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (3, N'ava.sanchez9889@example.com', N'E8CA4$UE8CA')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (4, N'emily.taylor9920@example.com', N'75898#Z7589')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (5, N'chloe.sanchez0896@example.com', N'219E8@A219E')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (6, N'michael.nelson1184@example.com', N'BCCF3^TBCCF')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (7, N'liam.jackson8350@example.com', N'E2FC3&KE2FC')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (8, N'daniel.sanchez2244@example.com', N'25E10!S25E1')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (9, N'david.jones3278@example.com', N'60406*C6040')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (10, N'ava.wilson3276@example.com', N'023E5&U023E')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (11, N'benjamin.johnson5458@example.com', N'080C4@V080C')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (12, N'sarah.adams5262@example.com', N'A5261@IA526')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (13, N'benjamin.smith6300@example.com', N'A80D0^DA80D')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (14, N'amelia.moore5243@example.com', N'B2905@OB290')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (15, N'liam.nelson6214@example.com', N'4E794!O4E79')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (16, N'ava.hill5516@example.com', N'92D98!G92D9')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (17, N'henry.green3259@example.com', N'5D446^F5D44')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (18, N'emma.brown7785@example.com', N'7C2B7#B7C2B')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (19, N'emma.thomas8150@example.com', N'1EE04@F1EE0')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (20, N'john.adams3489@example.com', N'A6990%ZA699')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (21, N'lucas.young7872@example.com', N'8C1B4&U8C1B')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (22, N'charlotte.roberts2681@example.com', N'029C6@E029C')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (23, N'isabella.moore6849@example.com', N'9D3B7^I9D3B')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (24, N'harper.lopez1119@example.com', N'77991*Y7799')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (25, N'sarah.torres6401@example.com', N'8B9A2#M8B9A')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (26, N'alexander.brown4310@example.com', N'F34D3$PF34D')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (27, N'harper.hill0945@example.com', N'5AAF9&T5AAF')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (28, N'ethan.moore2486@example.com', N'47E89!T47E8')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (29, N'jack.brown8086@example.com', N'999E8$D999E')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (30, N'benjamin.allen0481@example.com', N'E8900*CE890')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (31, N'olivia.johnson9022@example.com', N'62F08#R62F0')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (32, N'john.flores4489@example.com', N'65953!P6595')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (33, N'emma.walker4652@example.com', N'C9334^QC933')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (34, N'benjamin.flores4149@example.com', N'48577%I4857')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (35, N'charlotte.roberts9313@example.com', N'B0630!IB063')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (36, N'john.hall4799@example.com', N'C47B0%HC47B')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (37, N'liam.taylor8913@example.com', N'66250$Q6625')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (38, N'amelia.allen5031@example.com', N'BCE43@TBCE4')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (39, N'mia.martinez4167@example.com', N'6FDF1^U6FDF')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (40, N'noah.torres8346@example.com', N'D6982*MD698')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (41, N'emma.wilson2540@example.com', N'7C994$N7C99')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (42, N'harper.white5362@example.com', N'FC2C7^OFC2C')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (43, N'john.green7212@example.com', N'59D96@M59D9')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (44, N'daniel.rodriguez0102@example.com', N'D38A7^KD38A')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (45, N'sebastian.nguyen9563@example.com', N'4A6B0!I4A6B')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (46, N'michael.lopez5153@example.com', N'C80C6!CC80C')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (47, N'john.hernandez6619@example.com', N'02EC3@L02EC')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (48, N'daniel.anderson1572@example.com', N'104C3%J104C')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (49, N'david.ramirez5680@example.com', N'CEE17%VCEE1')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (50, N'zoe.carter6565@example.com', N'CC777$YCC77')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (51, N'liam.mitchell6474@example.com', N'57BD8$L57BD')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (52, N'grace.green5573@example.com', N'7D067*C7D06')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (53, N'noah.allen2001@example.com', N'64334#U6433')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (54, N'ava.clark7244@example.com', N'AE095&LAE09')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (55, N'henry.king8698@example.com', N'04250*O0425')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (56, N'chloe.rodriguez1583@example.com', N'DF246@HDF24')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (57, N'daniel.wright3930@example.com', N'27DA5#N27DA')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (58, N'sarah.allen2356@example.com', N'9A863^N9A86')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (59, N'grace.hall4481@example.com', N'55752&A5575')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (60, N'samuel.williams9319@example.com', N'88EB9#T88EB')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (61, N'olivia.hall0520@example.com', N'836F7@A836F')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (62, N'ethan.hernandez9453@example.com', N'6B706$U6B70')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (63, N'alexander.miller0769@example.com', N'6A910!B6A91')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (64, N'jack.gomez5064@example.com', N'EA4D5!HEA4D')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (65, N'samuel.harris0305@example.com', N'54714$C5471')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (66, N'sarah.lopez6866@example.com', N'CC8D0$ACC8D')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (67, N'isabella.johnson9749@example.com', N'D0621!SD062')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (68, N'ethan.ramirez3029@example.com', N'7F247^P7F24')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (69, N'alexander.perez3770@example.com', N'9CC03$B9CC0')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (70, N'ava.wright6426@example.com', N'12833!M1283')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (71, N'charlotte.rodriguez3492@example.com', N'0A353%H0A35')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (72, N'liam.jackson8311@example.com', N'29289!B2928')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (73, N'harper.walker4874@example.com', N'DBB53*ZDBB5')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (74, N'sebastian.roberts0495@example.com', N'F13F0#EF13F')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (75, N'lucas.jackson0489@example.com', N'CE629^KCE62')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (76, N'sophia.campbell2884@example.com', N'D1C41&TD1C4')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (77, N'benjamin.davis6901@example.com', N'45809!U4580')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (78, N'lucas.smith7808@example.com', N'A9F32!XA9F3')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (79, N'emma.roberts9991@example.com', N'9E9C8@H9E9C')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (80, N'sarah.hall2003@example.com', N'A27C2@VA27C')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (81, N'michael.torres9286@example.com', N'9CA27!N9CA2')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (82, N'grace.sanchez4849@example.com', N'60A23&G60A2')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (83, N'alexander.wilson6219@example.com', N'F0D53^NF0D5')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (84, N'david.davis0350@example.com', N'15F77$E15F7')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (85, N'liam.martinez2540@example.com', N'672D5!L672D')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (86, N'isabella.scott4252@example.com', N'EDAC7^SEDAC')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (87, N'samuel.perez6442@example.com', N'15F21#S15F2')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (88, N'david.adams2395@example.com', N'58829#I5882')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (89, N'emily.walker3441@example.com', N'0D343!I0D34')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (90, N'amelia.hall5326@example.com', N'70A15^A70A1')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (91, N'liam.torres2542@example.com', N'1DB14$W1DB1')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (92, N'sophia.clark6230@example.com', N'C0327&VC032')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (93, N'david.lee7373@example.com', N'2FFC6*X2FFC')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (94, N'olivia.taylor2420@example.com', N'1DCF8!X1DCF')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (95, N'sebastian.hill7340@example.com', N'83D44^E83D4')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (96, N'liam.sanchez3920@example.com', N'86812&J8681')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (97, N'ethan.sanchez8867@example.com', N'25521@V2552')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (98, N'john.johnson2757@example.com', N'0C087%N0C08')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (99, N'ethan.lewis2523@example.com', N'25EB6#Y25EB')
-GO
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (100, N'sebastian.rodriguez7301@example.com', N'E7EC2$ZE7EC')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (101, N'ella.williams5230@example.com', N'78257#F7825')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (102, N'james.hill3966@example.com', N'A30E4$SA30E')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (103, N'mia.gomez4217@example.com', N'0B651*H0B65')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (104, N'michael.gomez8896@example.com', N'CC7D3$RCC7D')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (105, N'ella.williams0174@example.com', N'35400!W3540')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (106, N'sebastian.thomas4226@example.com', N'ACAE7#MACAE')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (107, N'mia.lopez3341@example.com', N'394A3!V394A')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (108, N'ava.rivera7611@example.com', N'FBAA4%IFBAA')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (109, N'chloe.brown0118@example.com', N'64BB1@H64BB')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (110, N'amelia.thompson5913@example.com', N'75A44!N75A4')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (111, N'noah.wright0610@example.com', N'806F9!A806F')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (112, N'sophia.roberts9823@example.com', N'4D766!W4D76')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (113, N'lucas.gomez2251@example.com', N'CE334&UCE33')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (114, N'james.young7408@example.com', N'E4D45@ZE4D4')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (115, N'ella.baker1150@example.com', N'79C96*Y79C9')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (116, N'liam.adams1459@example.com', N'68A20^S68A2')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (117, N'jack.smith6971@example.com', N'89098@X8909')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (118, N'lucas.thomas8347@example.com', N'5EC32*X5EC3')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (119, N'sebastian.adams8826@example.com', N'3DDD0$E3DDD')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (120, N'lucas.martin7682@example.com', N'551B4*D551B')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (121, N'harper.perez7839@example.com', N'EBED4%XEBED')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (122, N'john.jackson2493@example.com', N'90E44%X90E4')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (123, N'david.anderson9494@example.com', N'3CB83!X3CB8')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (124, N'henry.walker5059@example.com', N'A5C70!YA5C7')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (125, N'amelia.smith4701@example.com', N'4DFD1!S4DFD')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (126, N'james.sanchez0111@example.com', N'0D099&G0D09')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (127, N'alexander.nelson6956@example.com', N'1C417$T1C41')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (128, N'emma.jones9932@example.com', N'49D15$L49D1')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (129, N'olivia.davis8335@example.com', N'54F84&M54F8')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (130, N'harper.scott3752@example.com', N'0B675^B0B67')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (131, N'lucas.carter1431@example.com', N'BB207&XBB20')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (132, N'charlotte.torres1229@example.com', N'2EEF8%N2EEF')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (133, N'olivia.ramirez3633@example.com', N'22E51@A22E5')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (134, N'isabella.sanchez5652@example.com', N'A0ED7%SA0ED')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (135, N'charlotte.nguyen3125@example.com', N'CA373!WCA37')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (136, N'isabella.wilson9007@example.com', N'3F451$M3F45')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (137, N'ava.martin8005@example.com', N'8B369^E8B36')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (138, N'charlotte.brown1688@example.com', N'04BA3*H04BA')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (139, N'isabella.thompson6443@example.com', N'E87E8&DE87E')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (140, N'emily.mitchell0592@example.com', N'B4C35@ZB4C3')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (141, N'ava.hill4794@example.com', N'E2759*OE275')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (142, N'lucas.white1494@example.com', N'F3240*ZF324')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (143, N'david.mitchell7861@example.com', N'72B57@C72B5')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (144, N'grace.brown3302@example.com', N'E6335*QE633')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (145, N'sarah.martin9106@example.com', N'24EF5!N24EF')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (146, N'daniel.carter0514@example.com', N'37656&C3765')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (147, N'ethan.lopez1509@example.com', N'4B269@J4B26')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (148, N'zoe.gonzalez3557@example.com', N'64499!I6449')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (149, N'mia.baker6947@example.com', N'174B2&V174B')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (150, N'emma.jones9793@example.com', N'D8493*ID849')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (151, N'zoe.nelson6091@example.com', N'72D60*G72D6')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (152, N'sebastian.robinson5002@example.com', N'D0976!ID097')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (153, N'isabella.baker5318@example.com', N'E5AE4^PE5AE')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (154, N'amelia.clark2281@example.com', N'61BD5&F61BD')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (155, N'jack.roberts7566@example.com', N'75244@O7524')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (156, N'mia.green2654@example.com', N'66D12%R66D1')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (157, N'alexander.nguyen3595@example.com', N'A85D1%HA85D')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (158, N'amelia.martinez2484@example.com', N'B0840$WB084')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (159, N'david.ramirez4160@example.com', N'0D859!T0D85')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (160, N'samuel.garcia5747@example.com', N'DD9B5*DDD9B')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (161, N'emma.gonzalez5677@example.com', N'31759$M3175')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (162, N'noah.taylor5601@example.com', N'EE6E5&JEE6E')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (163, N'grace.ramirez1181@example.com', N'44093$Z4409')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (164, N'david.young3628@example.com', N'BB352!NBB35')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (165, N'olivia.nguyen1543@example.com', N'99CD6^B99CD')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (166, N'olivia.davis5869@example.com', N'F0624$LF062')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (167, N'ava.davis8529@example.com', N'6F5F3%D6F5F')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (168, N'liam.jackson0732@example.com', N'D4EF7!RD4EF')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (169, N'emily.hill6543@example.com', N'16F17*W16F1')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (170, N'michael.white5735@example.com', N'E2AF8@OE2AF')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (171, N'ava.gonzalez9663@example.com', N'2DAE6*S2DAE')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (172, N'henry.lopez2894@example.com', N'21E09^Q21E0')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (173, N'emily.mitchell1786@example.com', N'56F18&J56F1')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (174, N'daniel.moore0641@example.com', N'FFF84%GFFF8')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (175, N'mia.thomas8783@example.com', N'D9845!ZD984')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (176, N'john.martinez9304@example.com', N'5DCD3@J5DCD')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (177, N'emily.garcia5095@example.com', N'65582!Q6558')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (178, N'alexander.allen8799@example.com', N'88736@H8873')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (179, N'henry.moore9724@example.com', N'273A6^K273A')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (180, N'harper.white9604@example.com', N'3E9C9^R3E9C')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (181, N'charlotte.campbell0524@example.com', N'79171%D7917')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (182, N'noah.allen3616@example.com', N'9A706#V9A70')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (183, N'jack.scott0094@example.com', N'08B03@Q08B0')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (184, N'ella.clark8288@example.com', N'9BA68%U9BA6')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (185, N'isabella.garcia5186@example.com', N'8EF75%Q8EF7')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (186, N'alexander.martin8195@example.com', N'7EF68%V7EF6')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (187, N'henry.williams2659@example.com', N'83C88!L83C8')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (188, N'michael.allen3146@example.com', N'A6C73%NA6C7')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (189, N'henry.moore8443@example.com', N'39B31@D39B3')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (190, N'benjamin.davis2145@example.com', N'625D2*M625D')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (191, N'noah.williams5055@example.com', N'1ECF8$M1ECF')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (192, N'isabella.clark3203@example.com', N'7D160&Z7D16')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (193, N'michael.allen6944@example.com', N'7E397@K7E39')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (194, N'harper.williams8039@example.com', N'C7C17*JC7C1')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (195, N'olivia.white3569@example.com', N'66F79&Q66F7')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (196, N'noah.flores2343@example.com', N'C4E30#UC4E3')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (197, N'sarah.young6444@example.com', N'162B4^A162B')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (198, N'mia.walker1665@example.com', N'42966*I4296')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (199, N'sebastian.sanchez7868@example.com', N'54671&T5467')
-GO
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (200, N'sebastian.lee1562@example.com', N'133F2%G133F')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (201, N'james.jackson1660@example.com', N'D6268*ED626')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (202, N'samuel.white6948@example.com', N'F06D0*OF06D')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (203, N'david.young1597@example.com', N'5BE06#Z5BE0')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (204, N'john.lewis2219@example.com', N'F9FC6$WF9FC')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (205, N'liam.gomez7335@example.com', N'2C3E2&I2C3E')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (206, N'emma.hill6906@example.com', N'C3381%WC338')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (207, N'olivia.rivera9592@example.com', N'998B6$A998B')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (208, N'grace.rivera2890@example.com', N'8A402&V8A40')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (209, N'sebastian.gomez0488@example.com', N'A35D7%NA35D')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (210, N'samuel.perez4836@example.com', N'870D5$Z870D')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (211, N'emma.wright6228@example.com', N'EDAF9$NEDAF')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (212, N'liam.perez2842@example.com', N'5C488!L5C48')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (213, N'emma.hernandez2271@example.com', N'83CA4!Z83CA')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (214, N'benjamin.wright6623@example.com', N'F7F53@AF7F5')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (215, N'ava.martinez9949@example.com', N'D79D2^ND79D')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (216, N'james.nguyen9398@example.com', N'24F13$R24F1')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (217, N'harper.gonzalez5105@example.com', N'5B772*I5B77')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (218, N'jack.martinez7424@example.com', N'56611&P5661')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (219, N'emily.white2626@example.com', N'ECA72$FECA7')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (220, N'alexander.ramirez5365@example.com', N'BA042*KBA04')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (221, N'david.young9545@example.com', N'09E05$F09E0')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (222, N'ava.robinson5366@example.com', N'46688^G4668')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (223, N'mia.johnson6608@example.com', N'2B4F2&U2B4F')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (224, N'lucas.sanchez1566@example.com', N'1DFF7&O1DFF')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (225, N'sarah.thomas7165@example.com', N'19F98&F19F9')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (226, N'michael.hall8340@example.com', N'59880$O5988')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (227, N'amelia.taylor7555@example.com', N'04B14$Z04B1')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (228, N'emily.jackson0169@example.com', N'9B4D4&W9B4D')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (229, N'olivia.gomez3845@example.com', N'A4405@OA440')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (230, N'samuel.roberts6730@example.com', N'72779*S7277')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (231, N'liam.anderson5523@example.com', N'75754@H7575')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (232, N'sophia.allen8958@example.com', N'5D6D9!J5D6D')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (233, N'grace.anderson9915@example.com', N'0ACB6%D0ACB')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (234, N'lucas.anderson2953@example.com', N'3DE82%E3DE8')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (235, N'michael.robinson3648@example.com', N'66306*P6630')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (236, N'sophia.ramirez3499@example.com', N'AD305$TAD30')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (237, N'mia.jones3346@example.com', N'FA678*MFA67')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (238, N'ella.clark7628@example.com', N'8E4C4^T8E4C')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (239, N'sarah.carter8424@example.com', N'4A185@M4A18')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (240, N'chloe.jackson3241@example.com', N'53A60$P53A6')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (241, N'ava.clark4291@example.com', N'DF474&RDF47')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (242, N'john.thomas7524@example.com', N'5F315^Y5F31')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (243, N'emily.gonzalez6782@example.com', N'39348*M3934')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (244, N'james.garcia0998@example.com', N'89734@J8973')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (245, N'emma.hill2755@example.com', N'C6D05#OC6D0')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (246, N'ella.martin6923@example.com', N'64194$B6419')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (247, N'ella.moore1225@example.com', N'6C804!N6C80')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (248, N'olivia.miller4531@example.com', N'17378!N1737')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (249, N'samuel.moore3438@example.com', N'0E2F5%F0E2F')
-INSERT [dbo].[Users] ([id], [email], [password]) VALUES (250, N'mia.jackson9422@example.com', N'07799!I0779')
-SET IDENTITY_INSERT [dbo].[Users] OFF
-GO
-SET IDENTITY_INSERT [dbo].[Wishlist] ON 
+-- Table: users
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL
+);
 
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (143, 9, 1)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (24, 49, 2)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (28, 36, 3)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (138, 1, 4)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (63, 6, 5)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (160, 44, 6)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (73, 4, 7)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (6, 44, 8)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (135, 31, 9)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (68, 50, 10)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (198, 45, 11)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (100, 29, 12)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (24, 44, 13)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (167, 14, 14)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (76, 36, 15)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (206, 45, 16)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (147, 12, 17)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (28, 37, 18)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (196, 49, 19)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (166, 3, 20)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (166, 19, 21)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (120, 36, 22)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (236, 46, 23)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (132, 20, 24)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (179, 20, 25)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (83, 18, 26)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (121, 47, 27)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (57, 34, 28)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (130, 35, 29)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (155, 11, 30)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (33, 26, 31)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (15, 14, 32)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (159, 40, 33)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (44, 44, 34)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (33, 34, 35)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (174, 8, 36)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (140, 2, 37)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (125, 4, 38)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (40, 41, 39)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (58, 19, 40)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (42, 4, 41)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (154, 48, 42)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (77, 11, 43)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (152, 9, 44)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (94, 9, 45)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (244, 35, 46)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (105, 15, 47)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (59, 15, 48)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (138, 21, 49)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (54, 31, 50)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (65, 8, 51)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (192, 19, 52)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (213, 8, 53)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (221, 16, 54)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (179, 30, 55)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (74, 26, 56)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (178, 41, 57)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (199, 27, 58)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (209, 23, 59)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (60, 28, 60)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (213, 25, 61)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (227, 50, 62)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (34, 21, 63)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (98, 38, 64)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (113, 20, 65)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (180, 29, 66)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (208, 22, 67)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (24, 34, 68)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (62, 42, 69)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (2, 22, 70)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (34, 31, 71)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (167, 38, 72)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (246, 37, 73)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (83, 31, 74)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (135, 20, 75)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (95, 38, 76)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (152, 25, 77)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (119, 12, 78)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (141, 11, 79)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (123, 10, 80)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (188, 46, 81)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (179, 44, 82)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (164, 42, 83)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (145, 15, 84)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (111, 7, 85)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (221, 3, 86)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (24, 23, 87)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (37, 43, 88)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (236, 6, 89)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (74, 41, 90)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (214, 16, 91)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (114, 2, 92)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (174, 3, 93)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (132, 48, 94)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (199, 14, 95)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (127, 14, 96)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (75, 44, 97)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (13, 17, 98)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (89, 33, 99)
-GO
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (35, 6, 100)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (77, 20, 101)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (29, 21, 102)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (4, 46, 103)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (78, 42, 104)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (6, 48, 105)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (158, 8, 106)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (243, 27, 107)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (132, 40, 108)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (233, 35, 109)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (29, 17, 110)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (59, 35, 111)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (48, 4, 112)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (91, 16, 113)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (102, 30, 114)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (212, 4, 115)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (250, 45, 116)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (153, 6, 117)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (215, 26, 118)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (100, 35, 119)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (205, 48, 120)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (34, 36, 121)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (105, 39, 122)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (98, 22, 123)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (60, 6, 124)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (205, 31, 125)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (79, 26, 126)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (100, 7, 127)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (242, 15, 128)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (138, 41, 129)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (215, 3, 130)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (54, 31, 131)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (90, 44, 132)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (73, 38, 133)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (28, 35, 134)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (56, 49, 135)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (51, 17, 136)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (8, 41, 137)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (66, 41, 138)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (11, 40, 139)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (59, 33, 140)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (168, 18, 141)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (35, 37, 142)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (119, 35, 143)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (184, 4, 144)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (149, 31, 145)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (78, 13, 146)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (154, 39, 147)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (22, 14, 148)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (12, 11, 149)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (119, 23, 150)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (29, 8, 151)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (160, 29, 152)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (248, 15, 153)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (51, 29, 154)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (148, 38, 155)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (155, 9, 156)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (141, 1, 157)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (249, 32, 158)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (144, 31, 159)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (164, 49, 160)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (141, 10, 161)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (103, 23, 162)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (235, 19, 163)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (220, 15, 164)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (86, 30, 165)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (13, 1, 166)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (247, 16, 167)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (180, 40, 168)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (4, 20, 169)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (52, 18, 170)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (189, 21, 171)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (222, 15, 172)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (53, 21, 173)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (161, 26, 174)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (238, 36, 175)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (148, 34, 176)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (143, 30, 177)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (201, 25, 178)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (219, 25, 179)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (27, 1, 180)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (15, 46, 181)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (125, 20, 182)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (140, 41, 183)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (99, 31, 184)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (207, 17, 185)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (5, 47, 186)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (200, 42, 187)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (12, 5, 188)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (243, 21, 189)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (89, 10, 190)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (157, 22, 191)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (202, 50, 192)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (159, 45, 193)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (185, 38, 194)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (167, 42, 195)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (216, 32, 196)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (203, 4, 197)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (191, 47, 198)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (219, 5, 199)
-GO
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (130, 11, 200)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (21, 48, 201)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (82, 44, 202)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (1, 19, 203)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (29, 25, 204)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (7, 28, 205)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (116, 46, 206)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (30, 28, 207)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (213, 32, 208)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (243, 14, 209)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (67, 32, 210)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (211, 41, 211)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (34, 7, 212)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (192, 47, 213)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (154, 30, 214)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (204, 10, 215)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (34, 19, 216)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (41, 30, 217)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (214, 16, 218)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (19, 14, 219)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (194, 18, 220)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (43, 32, 221)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (218, 46, 222)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (120, 4, 223)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (18, 10, 224)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (20, 5, 225)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (101, 13, 226)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (114, 3, 227)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (215, 24, 228)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (143, 12, 229)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (56, 19, 230)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (34, 27, 231)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (180, 33, 232)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (27, 22, 233)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (13, 22, 234)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (192, 13, 235)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (24, 21, 236)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (41, 41, 237)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (5, 18, 238)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (23, 26, 239)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (195, 24, 240)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (201, 48, 241)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (109, 31, 242)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (179, 38, 243)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (122, 42, 244)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (183, 45, 245)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (153, 22, 246)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (238, 17, 247)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (150, 42, 248)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (206, 41, 249)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (130, 49, 250)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (202, 17, 251)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (133, 11, 252)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (155, 27, 253)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (212, 20, 254)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (56, 7, 255)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (156, 19, 256)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (79, 17, 257)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (101, 49, 258)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (132, 50, 259)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (206, 42, 260)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (51, 23, 261)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (48, 5, 262)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (158, 45, 263)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (84, 19, 264)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (136, 14, 265)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (223, 47, 266)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (35, 4, 267)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (79, 30, 268)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (60, 5, 269)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (10, 31, 270)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (114, 41, 271)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (111, 32, 272)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (103, 42, 273)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (214, 30, 274)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (121, 28, 275)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (210, 42, 276)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (199, 42, 277)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (116, 30, 278)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (173, 10, 279)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (21, 7, 280)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (120, 9, 281)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (55, 12, 282)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (39, 6, 283)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (10, 50, 284)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (195, 29, 285)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (109, 41, 286)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (60, 38, 287)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (110, 16, 288)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (61, 39, 289)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (34, 4, 290)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (129, 23, 291)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (103, 21, 292)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (120, 18, 293)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (123, 32, 294)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (197, 8, 295)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (41, 18, 296)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (68, 20, 297)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (34, 36, 298)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (73, 22, 299)
-GO
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (43, 44, 300)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (157, 37, 301)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (44, 37, 302)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (56, 11, 303)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (128, 40, 304)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (57, 47, 305)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (103, 2, 306)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (104, 5, 307)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (1, 28, 308)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (1, 28, 309)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (1, 28, 310)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (1, 24, 311)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (1, 24, 312)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (1, 7, 313)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (1, 11, 314)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (1, 11, 315)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (1, 1, 316)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (1, 1, 317)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (1, 1, 318)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (1, 18, 319)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (1, 13, 320)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (59, 40, 321)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (14, 36, 322)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (229, 32, 323)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (146, 8, 324)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (192, 13, 325)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (136, 45, 326)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (237, 18, 327)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (17, 39, 328)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (222, 11, 329)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (215, 37, 330)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (170, 11, 331)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (149, 30, 332)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (107, 11, 333)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (100, 15, 334)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (14, 42, 335)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (214, 25, 336)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (71, 47, 337)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (32, 11, 338)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (88, 20, 339)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (196, 36, 340)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (28, 30, 341)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (156, 9, 342)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (247, 7, 343)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (51, 37, 344)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (79, 8, 345)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (57, 9, 346)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (218, 42, 347)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (63, 14, 348)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (66, 25, 349)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (95, 43, 350)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (6, 17, 351)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (56, 43, 352)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (216, 36, 353)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (223, 36, 354)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (54, 5, 355)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (1, 10, 356)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (145, 20, 357)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (173, 2, 358)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (157, 30, 359)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (179, 3, 360)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (119, 19, 361)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (145, 21, 362)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (46, 13, 363)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (163, 45, 364)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (223, 37, 365)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (52, 46, 366)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (217, 11, 367)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (128, 46, 368)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (114, 5, 369)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (131, 25, 370)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (58, 25, 371)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (155, 18, 372)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (28, 19, 373)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (109, 3, 374)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (154, 34, 375)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (48, 31, 376)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (4, 43, 377)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (174, 46, 378)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (19, 27, 379)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (131, 16, 380)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (11, 50, 381)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (101, 9, 382)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (85, 42, 383)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (160, 1, 384)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (153, 46, 385)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (74, 23, 386)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (234, 31, 387)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (12, 50, 388)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (207, 31, 389)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (81, 45, 390)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (20, 45, 391)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (63, 16, 392)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (54, 23, 393)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (135, 14, 394)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (175, 37, 395)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (123, 42, 396)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (14, 14, 397)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (39, 7, 398)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (41, 6, 399)
-GO
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (24, 36, 400)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (162, 14, 401)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (153, 5, 402)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (207, 31, 403)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (47, 16, 404)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (102, 29, 405)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (149, 28, 406)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (100, 40, 407)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (213, 46, 408)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (31, 21, 409)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (128, 27, 410)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (204, 15, 411)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (52, 17, 412)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (153, 43, 413)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (80, 27, 414)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (199, 4, 415)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (204, 7, 416)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (174, 24, 417)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (86, 4, 418)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (158, 14, 419)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (7, 39, 420)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (116, 22, 421)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (5, 42, 422)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (17, 19, 423)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (31, 28, 424)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (46, 39, 425)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (81, 37, 426)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (209, 5, 427)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (132, 15, 428)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (54, 28, 429)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (168, 10, 430)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (123, 7, 431)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (108, 42, 432)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (145, 7, 433)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (18, 36, 434)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (214, 50, 435)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (98, 50, 436)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (232, 40, 437)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (49, 45, 438)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (240, 47, 439)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (113, 23, 440)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (137, 22, 441)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (88, 50, 442)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (23, 34, 443)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (75, 22, 444)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (56, 44, 445)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (82, 17, 446)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (143, 8, 447)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (182, 15, 448)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (29, 45, 449)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (200, 25, 450)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (25, 43, 451)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (143, 45, 452)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (182, 4, 453)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (174, 25, 454)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (106, 19, 455)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (191, 1, 456)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (199, 28, 457)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (233, 34, 458)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (9, 7, 459)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (140, 18, 460)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (205, 30, 461)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (201, 24, 462)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (121, 30, 463)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (213, 45, 464)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (126, 39, 465)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (86, 7, 466)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (203, 25, 467)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (133, 20, 468)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (16, 14, 469)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (219, 31, 470)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (79, 31, 471)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (159, 21, 472)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (123, 21, 473)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (12, 20, 474)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (152, 25, 475)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (247, 50, 476)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (229, 8, 477)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (136, 49, 478)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (236, 13, 479)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (142, 16, 480)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (193, 28, 481)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (215, 50, 482)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (35, 35, 483)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (173, 26, 484)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (11, 40, 485)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (184, 16, 486)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (209, 10, 487)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (35, 48, 488)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (72, 46, 489)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (78, 38, 490)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (98, 21, 491)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (32, 43, 492)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (107, 18, 493)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (59, 15, 494)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (110, 16, 495)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (47, 30, 496)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (175, 34, 497)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (108, 23, 498)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (92, 16, 499)
-GO
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (62, 38, 500)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (20, 11, 501)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (37, 11, 502)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (207, 24, 503)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (198, 35, 504)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (91, 25, 505)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (246, 5, 506)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (112, 25, 507)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (82, 31, 508)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (102, 45, 509)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (244, 45, 510)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (7, 16, 511)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (250, 12, 512)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (189, 5, 513)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (1, 2, 514)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (1, 9, 515)
-INSERT [dbo].[Wishlist] ([user_id], [stock_id], [id]) VALUES (1, 9, 516)
-SET IDENTITY_INSERT [dbo].[Wishlist] OFF
-GO
-SET ANSI_PADDING ON
-GO
-/****** Object:  Index [UQ_Users_Email]    Script Date: 08-05-2025 14:24:01 ******/
-ALTER TABLE [dbo].[Users] ADD  CONSTRAINT [UQ_Users_Email] UNIQUE NONCLUSTERED 
-(
-	[email] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-GO
-ALTER TABLE [dbo].[Wishlist]  WITH CHECK ADD FOREIGN KEY([stock_id])
-REFERENCES [dbo].[Stocks] ([id])
-GO
-USE [master]
-GO
-ALTER DATABASE [stockwishlist] SET  READ_WRITE 
-GO
+-- Table: wishlist
+CREATE TABLE wishlist (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    stock_id INT NOT NULL
+);
+
+-- Insert data into stocks
+INSERT INTO stocks (id, name, quantity) VALUES 
+(1, 'Apple Inc.', 50),
+(2, 'Microsoft Corporation', 218),
+(3, 'Alphabet Inc. (Google)', 439),
+(4, 'Amazon.com Inc.', 415),
+(5, 'Tesla Inc.', 424),
+(6, 'Meta Platforms Inc. (Facebook)', 138),
+(7, 'NVIDIA Corporation', 330),
+(8, 'Berkshire Hathaway Inc.', 486),
+(9, 'Visa Inc.', 55),
+(10, 'Johnson & Johnson', 37),
+(11, 'UnitedHealth Group', 60),
+(12, 'JPMorgan Chase & Co.', 173),
+(13, 'Mastercard Inc.', 318),
+(14, 'Procter & Gamble Co.', 35),
+(15, 'Home Depot Inc.', 500),
+(16, 'Pfizer Inc.', 338),
+(17, 'Coca-Cola Company', 160),
+(18, 'PepsiCo Inc.', 432),
+(19, 'Adobe Inc.', 270),
+(20, 'Netflix Inc.', 182),
+(21, 'Exxon Mobil Corporation', 269),
+(22, 'Walmart Inc.', 371),
+(23, 'Walt Disney Company', 107),
+(24, 'Salesforce Inc.', 166),
+(25, 'Intel Corporation', 78),
+(26, 'Cisco Systems Inc.', 18),
+(27, 'Oracle Corporation', 204),
+(28, 'Qualcomm Inc.', 16),
+(29, 'AT&T Inc.', 289),
+(30, 'Verizon Communications', 401),
+(31, 'Chevron Corporation', 363),
+(32, 'Boeing Company', 317),
+(33, 'McDonaldâ€™s Corporation', 387),
+(34, 'AbbVie Inc.', 184),
+(35, 'IBM Corporation', 470),
+(36, 'American Express', 453),
+(37, '3M Company', 102),
+(38, 'Costco Wholesale', 163),
+(39, 'Starbucks Corporation', 368),
+(40, 'Nike Inc.', 44),
+(41, 'Ford Motor Company', 367),
+(42, 'General Motors', 409),
+(43, 'Zoom Video Communications', 351),
+(44, 'Snowflake Inc.', 165),
+(45, 'Shopify Inc.', 139),
+(46, 'Palantir Technologies', 19),
+(47, 'Roku Inc.', 2),
+(48, 'Uber Technologies', 222),
+(49, 'Airbnb Inc.', 485),
+(50, 'Block Inc. (Square)', 28);
+
+INSERT INTO users (id, email, password) VALUES
+(1, 'sarah.walker6786@example.com', '0C7E6^N0C7E'),
+(2, 'michael.allen1642@example.com', '424E7*Y424E'),
+(3, 'ava.sanchez9889@example.com', 'E8CA4$UE8CA'),
+(4, 'emily.taylor9920@example.com', '75898#Z7589'),
+(5, 'chloe.sanchez0896@example.com', '219E8@A219E'),
+(6, 'michael.nelson1184@example.com', 'BCCF3^TBCCF'),
+(7, 'liam.jackson8350@example.com', 'E2FC3&KE2FC'),
+(8, 'daniel.sanchez2244@example.com', '25E10!S25E1'),
+(9, 'david.jones3278@example.com', '60406*C6040'),
+(10, 'ava.wilson3276@example.com', '023E5&U023E'),
+(11, 'benjamin.johnson5458@example.com', '080C4@V080C'),
+(12, 'sarah.adams5262@example.com', 'A5261@IA526'),
+(13, 'benjamin.smith6300@example.com', 'A80D0^DA80D'),
+(14, 'amelia.moore5243@example.com', 'B2905@OB290'),
+(15, 'liam.nelson6214@example.com', '4E794!O4E79'),
+(16, 'ava.hill5516@example.com', '92D98!G92D9'),
+(17, 'henry.green3259@example.com', '5D446^F5D44'),
+(18, 'emma.brown7785@example.com', '7C2B7#B7C2B'),
+(19, 'emma.thomas8150@example.com', '1EE04@F1EE0'),
+(20, 'john.adams3489@example.com', 'A6990%ZA699'),
+(21, 'lucas.young7872@example.com', '8C1B4&U8C1B'),
+(22, 'charlotte.roberts2681@example.com', '029C6@E029C'),
+(23, 'isabella.moore6849@example.com', '9D3B7^I9D3B'),
+(24, 'harper.lopez1119@example.com', '77991*Y7799'),
+(25, 'sarah.torres6401@example.com', '8B9A2#M8B9A'),
+(26, 'alexander.brown4310@example.com', 'F34D3$PF34D'),
+(27, 'harper.hill0945@example.com', '5AAF9&T5AAF'),
+(28, 'ethan.moore2486@example.com', '47E89!T47E8'),
+(29, 'jack.brown8086@example.com', '999E8$D999E'),
+(30, 'benjamin.allen0481@example.com', 'E8900*CE890'),
+(31, 'olivia.johnson9022@example.com', '62F08#R62F0'),
+(32, 'john.flores4489@example.com', '65953!P6595'),
+(33, 'emma.walker4652@example.com', 'C9334^QC933'),
+(34, 'benjamin.flores4149@example.com', '48577%I4857'),
+(35, 'charlotte.roberts9313@example.com', 'B0630!IB063'),
+(36, 'john.hall4799@example.com', 'C47B0%HC47B'),
+(37, 'liam.taylor8913@example.com', '66250$Q6625'),
+(38, 'amelia.allen5031@example.com', 'BCE43@TBCE4'),
+(39, 'mia.martinez4167@example.com', '6FDF1^U6FDF'),
+(40, 'noah.torres8346@example.com', 'D6982*MD698'),
+(41, 'emma.wilson2540@example.com', '7C994$N7C99'),
+(42, 'harper.white5362@example.com', 'FC2C7^OFC2C'),
+(43, 'john.green7212@example.com', '59D96@M59D9'),
+(44, 'daniel.rodriguez0102@example.com', 'D38A7^KD38A'),
+(45, 'sebastian.nguyen9563@example.com', '4A6B0!I4A6B'),
+(46, 'michael.lopez5153@example.com', 'C80C6!CC80C'),
+(47, 'john.hernandez6619@example.com', '02EC3@L02EC'),
+(48, 'daniel.anderson1572@example.com', '104C3%J104C'),
+(49, 'david.ramirez5680@example.com', 'CEE17%VCEE1'),
+(50, 'zoe.carter6565@example.com', 'CC777$YCC77'),
+(51, 'liam.mitchell6474@example.com', '57BD8$L57BD'),
+(52, 'grace.green5573@example.com', '7D067*C7D06'),
+(53, 'noah.allen2001@example.com', '64334#U6433'),
+(54, 'ava.clark7244@example.com', 'AE095&LAE09'),
+(55, 'henry.king8698@example.com', '04250*O0425'),
+(56, 'chloe.rodriguez1583@example.com', 'DF246@HDF24'),
+(57, 'daniel.wright3930@example.com', '27DA5#N27DA'),
+(58, 'sarah.allen2356@example.com', '9A863^N9A86'),
+(59, 'grace.hall4481@example.com', '55752&A5575'),
+(60, 'samuel.williams9319@example.com', '88EB9#T88EB'),
+(61, 'olivia.hall0520@example.com', '836F7@A836F'),
+(62, 'ethan.hernandez9453@example.com', '6B706$U6B70'),
+(63, 'alexander.miller0769@example.com', '6A910!B6A91'),
+(64, 'jack.gomez5064@example.com', 'EA4D5!HEA4D'),
+(65, 'samuel.harris0305@example.com', '54714$C5471'),
+(66, 'sarah.lopez6866@example.com', 'CC8D0$ACC8D'),
+(67, 'isabella.johnson9749@example.com', 'D0621!SD062'),
+(68, 'ethan.ramirez3029@example.com', '7F247^P7F24'),
+(69, 'alexander.perez3770@example.com', '9CC03$B9CC0'),
+(70, 'ava.wright6426@example.com', '12833!M1283'),
+(71, 'charlotte.rodriguez3492@example.com', '0A353%H0A35'),
+(72, 'liam.jackson8311@example.com', '29289!B2928'),
+(73, 'harper.walker4874@example.com', 'DBB53*ZDBB5'),
+(74, 'sebastian.roberts0495@example.com', 'F13F0#EF13F'),
+(75, 'lucas.jackson0489@example.com', 'CE629^KCE62'),
+(76, 'sophia.campbell2884@example.com', 'D1C41&TD1C4'),
+(77, 'benjamin.davis6901@example.com', '45809!U4580'),
+(78, 'lucas.smith7808@example.com', 'A9F32!XA9F3'),
+(79, 'emma.roberts9991@example.com', '9E9C8@H9E9C'),
+(80, 'sarah.hall2003@example.com', 'A27C2@VA27C'),
+(81, 'michael.torres9286@example.com', '9CA27!N9CA2'),
+(82, 'grace.sanchez4849@example.com', '60A23&G60A2'),
+(83, 'alexander.wilson6219@example.com', 'F0D53^NF0D5'),
+(84, 'david.davis0350@example.com', '15F77$E15F7'),
+(85, 'liam.martinez2540@example.com', '672D5!L672D'),
+(86, 'isabella.scott4252@example.com', 'EDAC7^SEDAC'),
+(87, 'samuel.perez6442@example.com', '15F21#S15F2'),
+(88, 'david.adams2395@example.com', '58829#I5882'),
+(89, 'emily.walker3441@example.com', '0D343!I0D34'),
+(90, 'amelia.hall5326@example.com', '70A15^A70A1'),
+(91, 'liam.torres2542@example.com', '1DB14$W1DB1'),
+(92, 'sophia.clark6230@example.com', 'C0327&VC032'),
+(93, 'david.lee7373@example.com', '2FFC6*X2FFC'),
+(94, 'olivia.taylor2420@example.com', '1DCF8!X1DCF'),
+(95, 'sebastian.hill7340@example.com', '83D44^E83D4'),
+(96, 'liam.sanchez3920@example.com', '86812&J8681'),
+(97, 'ethan.sanchez8867@example.com', '25521@V2552'),
+(98, 'john.johnson2757@example.com', '0C087%N0C08'),
+(99, 'ethan.lewis2523@example.com', '25EB6#Y25EB'),
+(100, 'sebastian.rodriguez7301@example.com', 'E7EC2$ZE7EC'),
+(101, 'ella.williams5230@example.com', '78257#F7825'),
+(102, 'james.hill3966@example.com', 'A30E4$SA30E'),
+(103, 'mia.gomez4217@example.com', '0B651*H0B65'),
+(104, 'michael.gomez8896@example.com', 'CC7D3$RCC7D'),
+(105, 'ella.williams0174@example.com', '35400!W3540'),
+(106, 'sebastian.thomas4226@example.com', 'ACAE7#MACAE'),
+(107, 'mia.lopez3341@example.com', '394A3!V394A'),
+(108, 'ava.rivera7611@example.com', 'FBAA4%IFBAA'),
+(109, 'chloe.brown0118@example.com', '64BB1@H64BB'),
+(110, 'amelia.thompson5913@example.com', '75A44!N75A4'),
+(111, 'noah.wright0610@example.com', '806F9!A806F'),
+(112, 'sophia.roberts9823@example.com', '4D766!W4D76'),
+(113, 'lucas.gomez2251@example.com', 'CE334&UCE33'),
+(114, 'james.young7408@example.com', 'E4D45@ZE4D4'),
+(115, 'ella.baker1150@example.com', '79C96*Y79C9'),
+(116, 'liam.adams1459@example.com', '68A20^S68A2'),
+(117, 'jack.smith6971@example.com', '89098@X8909'),
+(118, 'lucas.thomas8347@example.com', '5EC32*X5EC3'),
+(119, 'sebastian.adams8826@example.com', '3DDD0$E3DDD'),
+(120, 'lucas.martin7682@example.com', '551B4*D551B'),
+(121, 'harper.perez7839@example.com', 'EBED4%XEBED'),
+(122, 'john.jackson2493@example.com', '90E44%X90E4'),
+(123, 'david.anderson9494@example.com', '3CB83!X3CB8'),
+(124, 'henry.walker5059@example.com', 'A5C70!YA5C7'),
+(125, 'amelia.smith4701@example.com', '4DFD1!S4DFD'),
+(126, 'james.sanchez0111@example.com', '0D099&G0D09'),
+(127, 'alexander.nelson6956@example.com', '1C417$T1C41'),
+(128, 'emma.jones9932@example.com', '49D15$L49D1'),
+(129, 'olivia.davis8335@example.com', '54F84&M54F8'),
+(130, 'harper.scott3752@example.com', '0B675^B0B67'),
+(131, 'lucas.carter1431@example.com', 'BB207&XBB20'),
+(132, 'charlotte.torres1229@example.com', '2EEF8%N2EEF'),
+(133, 'olivia.ramirez3633@example.com', '22E51@A22E5'),
+(134, 'isabella.sanchez5652@example.com', 'A0ED7%SA0ED'),
+(135, 'charlotte.nguyen3125@example.com', 'CA373!WCA37'),
+(136, 'isabella.wilson9007@example.com', '3F451$M3F45'),
+(137, 'ava.martin8005@example.com', '8B369^E8B36'),
+(138, 'charlotte.brown1688@example.com', '04BA3*H04BA'),
+(139, 'isabella.thompson6443@example.com', 'E87E8&DE87E'),
+(140, 'emily.mitchell0592@example.com', 'B4C35@ZB4C3'),
+(141, 'ava.hill4794@example.com', 'E2759*OE275'),
+(142, 'lucas.white1494@example.com', 'F3240*ZF324'),
+(143, 'david.mitchell7861@example.com', '72B57@C72B5'),
+(144, 'grace.brown3302@example.com', 'E6335*QE633'),
+(145, 'sarah.martin9106@example.com', '24EF5!N24EF'),
+(146, 'daniel.carter0514@example.com', '37656&C3765'),
+(147, 'ethan.lopez1509@example.com', '4B269@J4B26'),
+(148, 'zoe.gonzalez3557@example.com', '64499!I6449'),
+(149, 'mia.baker6947@example.com', '174B2&V174B'),
+(150, 'emma.jones9793@example.com', 'D8493*ID849'),
+(151, 'zoe.nelson6091@example.com', '72D60*G72D6'),
+(152, 'sebastian.robinson5002@example.com', 'D0976!ID097'),
+(153, 'isabella.baker5318@example.com', 'E5AE4^PE5AE'),
+(154, 'amelia.clark2281@example.com', '61BD5&F61BD'),
+(155, 'jack.roberts7566@example.com', '75244@O7524'),
+(156, 'mia.green2654@example.com', '66D12%R66D1'),
+(157, 'alexander.nguyen3595@example.com', 'A85D1%HA85D'),
+(158, 'amelia.martinez2484@example.com', 'B0840$WB084'),
+(159, 'david.ramirez4160@example.com', '0D859!T0D85'),
+(160, 'samuel.garcia5747@example.com', 'DD9B5*DDD9B'),
+(161, 'emma.gonzalez5677@example.com', '31759$M3175'),
+(162, 'noah.taylor5601@example.com', 'EE6E5&JEE6E'),
+(163, 'grace.ramirez1181@example.com', '44093$Z4409'),
+(164, 'david.young3628@example.com', 'BB352!NBB35'),
+(165, 'olivia.nguyen1543@example.com', '99CD6^B99CD'),
+(166, 'olivia.davis5869@example.com', 'F0624$LF062'),
+(167, 'ava.davis8529@example.com', '6F5F3%D6F5F'),
+(168, 'liam.jackson0732@example.com', 'D4EF7!RD4EF'),
+(169, 'emily.hill6543@example.com', '16F17*W16F1'),
+(170, 'michael.white5735@example.com', 'E2AF8@OE2AF'),
+(171, 'ava.gonzalez9663@example.com', '2DAE6*S2DAE'),
+(172, 'henry.lopez2894@example.com', '21E09^Q21E0'),
+(173, 'emily.mitchell1786@example.com', '56F18&J56F1'),
+(174, 'daniel.moore0641@example.com', 'FFF84%GFFF8'),
+(175, 'mia.thomas8783@example.com', 'D9845!ZD984'),
+(176, 'john.martinez9304@example.com', '5DCD3@J5DCD'),
+(177, 'emily.garcia5095@example.com', '65582!Q6558'),
+(178, 'alexander.allen8799@example.com', '88736@H8873'),
+(179, 'henry.moore9724@example.com', '273A6^K273A'),
+(180, 'harper.white9604@example.com', '3E9C9^R3E9C'),
+(181, 'charlotte.campbell0524@example.com', '79171%D7917'),
+(182, 'noah.allen3616@example.com', '9A706#V9A70'),
+(183, 'jack.scott0094@example.com', '08B03@Q08B0'),
+(184, 'ella.clark8288@example.com', '9BA68%U9BA6'),
+(185, 'isabella.garcia5186@example.com', '8EF75%Q8EF7'),
+(186, 'alexander.martin8195@example.com', '7EF68%V7EF6'),
+(187, 'henry.williams2659@example.com', '83C88!L83C8'),
+(188, 'michael.allen3146@example.com', 'A6C73%NA6C7'),
+(189, 'henry.moore8443@example.com', '39B31@D39B3'),
+(190, 'benjamin.davis2145@example.com', '625D2*M625D'),
+(191, 'noah.williams5055@example.com', '1ECF8$M1ECF'),
+(192, 'isabella.clark3203@example.com', '7D160&Z7D16'),
+(193, 'michael.allen6944@example.com', '7E397@K7E39'),
+(194, 'harper.williams8039@example.com', 'C7C17*JC7C1'),
+(195, 'olivia.white3569@example.com', '66F79&Q66F7'),
+(196, 'noah.flores2343@example.com', 'C4E30#UC4E3'),
+(197, 'sarah.young6444@example.com', '162B4^A162B'),
+(198, 'mia.walker1665@example.com', '42966*I4296'),
+(199, 'sebastian.sanchez7868@example.com', '54671&T5467'),
+(200, 'sebastian.lee1562@example.com', '133F2%G133F'),
+(201, 'james.jackson1660@example.com', 'D6268*ED626'),
+(202, 'samuel.white6948@example.com', 'F06D0*OF06D'),
+(203, 'david.young1597@example.com', '5BE06#Z5BE0'),
+(204, 'john.lewis2219@example.com', 'F9FC6$WF9FC'),
+(205, 'liam.gomez7335@example.com', '2C3E2&I2C3E'),
+(206, 'emma.hill6906@example.com', 'C3381%WC338'),
+(207, 'olivia.rivera9592@example.com', '998B6$A998B'),
+(208, 'grace.rivera2890@example.com', '8A402&V8A40'),
+(209, 'sebastian.gomez0488@example.com', 'A35D7%NA35D'),
+(210, 'samuel.perez4836@example.com', '870D5$Z870D'),
+(211, 'emma.wright6228@example.com', 'EDAF9$NEDAF'),
+(212, 'liam.perez2842@example.com', '5C488!L5C48'),
+(213, 'emma.hernandez2271@example.com', '83CA4!Z83CA'),
+(214, 'benjamin.wright6623@example.com', 'F7F53@AF7F5'),
+(215, 'ava.martinez9949@example.com', 'D79D2^ND79D'),
+(216, 'james.nguyen9398@example.com', '24F13$R24F1'),
+(217, 'harper.gonzalez5105@example.com', '5B772*I5B77'),
+(218, 'jack.martinez7424@example.com', '56611&P5661'),
+(219, 'emily.white2626@example.com', 'ECA72$FECA7'),
+(220, 'alexander.ramirez5365@example.com', 'BA042*KBA04'),
+(221, 'david.young9545@example.com', '09E05$F09E0'),
+(222, 'ava.robinson5366@example.com', '46688^G4668'),
+(223, 'mia.johnson6608@example.com', '2B4F2&U2B4F'),
+(224, 'lucas.sanchez1566@example.com', '1DFF7&O1DFF'),
+(225, 'sarah.thomas7165@example.com', '19F98&F19F9'),
+(226, 'michael.hall8340@example.com', '59880$O5988'),
+(227, 'amelia.taylor7555@example.com', '04B14$Z04B1'),
+(228, 'emily.jackson0169@example.com', '9B4D4&W9B4D'),
+(229, 'olivia.gomez3845@example.com', 'A4405@OA440'),
+(230, 'samuel.roberts6730@example.com', '72779*S7277'),
+(231, 'liam.anderson5523@example.com', '75754@H7575'),
+(232, 'sophia.allen8958@example.com', '5D6D9!J5D6D'),
+(233, 'grace.anderson9915@example.com', '0ACB6%D0ACB'),
+(234, 'lucas.anderson2953@example.com', '3DE82%E3DE8'),
+(235, 'michael.robinson3648@example.com', '66306*P6630'),
+(236, 'sophia.ramirez3499@example.com', 'AD305$TAD30'),
+(237, 'mia.jones3346@example.com', 'FA678*MFA67'),
+(238, 'ella.clark7628@example.com', '8E4C4^T8E4C'),
+(239, 'sarah.carter8424@example.com', '4A185@M4A18'),
+(240, 'chloe.jackson3241@example.com', '53A60$P53A6'),
+(241, 'ava.clark4291@example.com', 'DF474&RDF47'),
+(242, 'john.thomas7524@example.com', '5F315^Y5F31'),
+(243, 'emily.gonzalez6782@example.com', '39348*M3934'),
+(244, 'james.garcia0998@example.com', '89734@J8973'),
+(245, 'emma.hill2755@example.com', 'C6D05#OC6D0'),
+(246, 'ella.martin6923@example.com', '64194$B6419'),
+(247, 'ella.moore1225@example.com', '6C804!N6C80'),
+(248, 'olivia.miller4531@example.com', '17378!N1737'),
+(249, 'samuel.moore3438@example.com', '0E2F5%F0E2F'),
+(250, 'mia.jackson9422@example.com', '07799!I0779');
+
+INSERT INTO wishlist (user_id, stock_id, id) VALUES
+(143, 9, 1),
+(24, 49, 2),
+(28, 36, 3),
+(138, 1, 4),
+(63, 6, 5),
+(160, 44, 6),
+(73, 4, 7),
+(6, 44, 8),
+(135, 31, 9),
+(68, 50, 10),
+(198, 45, 11),
+(100, 29, 12),
+(24, 44, 13),
+(167, 14, 14),
+(76, 36, 15),
+(206, 45, 16),
+(147, 12, 17),
+(28, 37, 18),
+(196, 49, 19),
+(166, 3, 20),
+(166, 19, 21),
+(120, 36, 22),
+(236, 46, 23),
+(132, 20, 24),
+(179, 20, 25),
+(83, 18, 26),
+(121, 47, 27),
+(57, 34, 28),
+(130, 35, 29),
+(155, 11, 30),
+(33, 26, 31),
+(15, 14, 32),
+(159, 40, 33),
+(44, 44, 34),
+(33, 34, 35),
+(174, 8, 36),
+(140, 2, 37),
+(125, 4, 38),
+(40, 41, 39),
+(58, 19, 40),
+(42, 4, 41),
+(154, 48, 42),
+(77, 11, 43),
+(152, 9, 44),
+(94, 9, 45),
+(244, 35, 46),
+(105, 15, 47),
+(59, 15, 48),
+(138, 21, 49),
+(54, 31, 50),
+(65, 8, 51),
+(192, 19, 52),
+(213, 8, 53),
+(221, 16, 54),
+(179, 30, 55),
+(74, 26, 56),
+(178, 41, 57),
+(199, 27, 58),
+(209, 23, 59),
+(60, 28, 60),
+(213, 25, 61),
+(227, 50, 62),
+(34, 21, 63),
+(98, 38, 64),
+(113, 20, 65),
+(180, 29, 66),
+(208, 22, 67),
+(24, 34, 68),
+(62, 42, 69),
+(2, 22, 70),
+(34, 31, 71),
+(167, 38, 72),
+(246, 37, 73),
+(83, 31, 74),
+(135, 20, 75),
+(95, 38, 76),
+(152, 25, 77),
+(119, 12, 78),
+(141, 11, 79),
+(123, 10, 80),
+(188, 46, 81),
+(179, 44, 82),
+(164, 42, 83),
+(145, 15, 84),
+(111, 7, 85),
+(221, 3, 86),
+(24, 23, 87),
+(37, 43, 88),
+(236, 6, 89),
+(74, 41, 90),
+(214, 16, 91),
+(114, 2, 92),
+(174, 3, 93),
+(132, 48, 94),
+(199, 14, 95),
+(127, 14, 96),
+(75, 44, 97),
+(13, 17, 98),
+(89, 33, 99),
+(35, 6, 100),
+(77, 20, 101),
+(29, 21, 102),
+(4, 46, 103),
+(78, 42, 104),
+(6, 48, 105),
+(158, 8, 106),
+(243, 27, 107),
+(132, 40, 108),
+(233, 35, 109),
+(29, 17, 110),
+(59, 35, 111),
+(48, 4, 112),
+(91, 16, 113),
+(102, 30, 114),
+(212, 4, 115),
+(250, 45, 116),
+(153, 6, 117),
+(215, 26, 118),
+(100, 35, 119),
+(205, 48, 120),
+(34, 36, 121),
+(105, 39, 122),
+(98, 22, 123),
+(60, 6, 124),
+(205, 31, 125),
+(79, 26, 126),
+(100, 7, 127),
+(242, 15, 128),
+(138, 41, 129),
+(215, 3, 130),
+(54, 31, 131),
+(90, 44, 132),
+(73, 38, 133),
+(28, 35, 134),
+(56, 49, 135),
+(51, 17, 136),
+(8, 41, 137),
+(66, 41, 138),
+(11, 40, 139),
+(59, 33, 140),
+(168, 18, 141),
+(35, 37, 142),
+(119, 35, 143),
+(184, 4, 144),
+(149, 31, 145),
+(78, 13, 146),
+(154, 39, 147),
+(22, 14, 148),
+(12, 11, 149),
+(119, 23, 150),
+(29, 8, 151),
+(160, 29, 152),
+(248, 15, 153),
+(51, 29, 154),
+(148, 38, 155),
+(155, 9, 156),
+(141, 1, 157),
+(249, 32, 158),
+(144, 31, 159),
+(164, 49, 160),
+(141, 10, 161),
+(103, 23, 162),
+(235, 19, 163),
+(220, 15, 164),
+(86, 30, 165),
+(13, 1, 166),
+(247, 16, 167),
+(180, 40, 168),
+(4, 20, 169),
+(52, 18, 170),
+(189, 21, 171),
+(222, 15, 172),
+(53, 21, 173),
+(161, 26, 174),
+(238, 36, 175),
+(148, 34, 176),
+(143, 30, 177),
+(201, 25, 178),
+(219, 25, 179),
+(27, 1, 180),
+(15, 46, 181),
+(125, 20, 182),
+(140, 41, 183),
+(99, 31, 184),
+(207, 17, 185),
+(5, 47, 186),
+(200, 42, 187),
+(12, 5, 188),
+(243, 21, 189),
+(89, 10, 190),
+(157, 22, 191),
+(202, 50, 192),
+(159, 45, 193),
+(185, 38, 194),
+(167, 42, 195),
+(216, 32, 196),
+(203, 4, 197),
+(191, 47, 198),
+(219, 5, 199),
+(130, 11, 200),
+(21, 48, 201),
+(82, 44, 202),
+(1, 19, 203),
+(29, 25, 204),
+(7, 28, 205),
+(116, 46, 206),
+(30, 28, 207),
+(213, 32, 208),
+(243, 14, 209),
+(67, 32, 210),
+(211, 41, 211),
+(34, 7, 212),
+(192, 47, 213),
+(154, 30, 214),
+(204, 10, 215),
+(34, 19, 216),
+(41, 30, 217),
+(214, 16, 218),
+(19, 14, 219),
+(194, 18, 220),
+(43, 32, 221),
+(218, 46, 222),
+(120, 4, 223),
+(18, 10, 224),
+(20, 5, 225),
+(101, 13, 226),
+(114, 3, 227),
+(215, 24, 228),
+(143, 12, 229),
+(56, 19, 230),
+(34, 27, 231),
+(180, 33, 232),
+(27, 22, 233),
+(13, 22, 234),
+(192, 13, 235),
+(24, 21, 236),
+(41, 41, 237),
+(5, 18, 238),
+(23, 26, 239),
+(195, 24, 240),
+(201, 48, 241),
+(109, 31, 242),
+(179, 38, 243),
+(122, 42, 244),
+(183, 45, 245),
+(153, 22, 246),
+(238, 17, 247),
+(150, 42, 248),
+(206, 41, 249),
+(130, 49, 250),
+(202, 17, 251),
+(133, 11, 252),
+(155, 27, 253),
+(212, 20, 254),
+(56, 7, 255),
+(156, 19, 256),
+(79, 17, 257),
+(101, 49, 258),
+(132, 50, 259),
+(206, 42, 260),
+(51, 23, 261),
+(48, 5, 262),
+(158, 45, 263),
+(84, 19, 264),
+(136, 14, 265),
+(223, 47, 266),
+(35, 4, 267),
+(79, 30, 268),
+(60, 5, 269),
+(10, 31, 270),
+(114, 41, 271),
+(111, 32, 272),
+(103, 42, 273),
+(214, 30, 274),
+(121, 28, 275),
+(210, 42, 276),
+(199, 42, 277),
+(116, 30, 278),
+(173, 10, 279),
+(21, 7, 280),
+(120, 9, 281),
+(55, 12, 282),
+(39, 6, 283),
+(10, 50, 284),
+(195, 29, 285),
+(109, 41, 286),
+(60, 38, 287),
+(110, 16, 288),
+(61, 39, 289),
+(34, 4, 290),
+(129, 23, 291),
+(103, 21, 292),
+(120, 18, 293),
+(123, 32, 294),
+(197, 8, 295),
+(41, 18, 296),
+(68, 20, 297),
+(34, 36, 298),
+(73, 22, 299),
+(43, 44, 300),
+(157, 37, 301),
+(44, 37, 302),
+(56, 11, 303),
+(128, 40, 304),
+(57, 47, 305),
+(103, 2, 306),
+(104, 5, 307),
+(1, 28, 308),
+(1, 28, 309),
+(1, 28, 310),
+(1, 24, 311),
+(1, 24, 312),
+(1, 7, 313),
+(1, 11, 314),
+(1, 11, 315),
+(1, 1, 316),
+(1, 1, 317),
+(1, 1, 318),
+(1, 18, 319),
+(1, 13, 320),
+(59, 40, 321),
+(14, 36, 322),
+(229, 32, 323),
+(146, 8, 324),
+(192, 13, 325),
+(136, 45, 326),
+(237, 18, 327),
+(17, 39, 328),
+(222, 11, 329),
+(215, 37, 330),
+(170, 11, 331),
+(149, 30, 332),
+(107, 11, 333),
+(100, 15, 334),
+(14, 42, 335),
+(214, 25, 336),
+(71, 47, 337),
+(32, 11, 338),
+(88, 20, 339),
+(196, 36, 340),
+(28, 30, 341),
+(156, 9, 342),
+(247, 7, 343),
+(51, 37, 344),
+(79, 8, 345),
+(57, 9, 346),
+(218, 42, 347),
+(63, 14, 348),
+(66, 25, 349),
+(95, 43, 350),
+(6, 17, 351),
+(56, 43, 352),
+(216, 36, 353),
+(223, 36, 354),
+(54, 5, 355),
+(1, 10, 356),
+(145, 20, 357),
+(173, 2, 358),
+(157, 30, 359),
+(179, 3, 360),
+(119, 19, 361),
+(145, 21, 362),
+(46, 13, 363),
+(163, 45, 364),
+(223, 37, 365),
+(52, 46, 366),
+(217, 11, 367),
+(128, 46, 368),
+(114, 5, 369),
+(131, 25, 370),
+(58, 25, 371),
+(155, 18, 372),
+(28, 19, 373),
+(109, 3, 374),
+(154, 34, 375),
+(48, 31, 376),
+(4, 43, 377),
+(174, 46, 378),
+(19, 27, 379),
+(131, 16, 380),
+(11, 50, 381),
+(101, 9, 382),
+(85, 42, 383),
+(160, 1, 384),
+(153, 46, 385),
+(74, 23, 386),
+(234, 31, 387),
+(12, 50, 388),
+(207, 31, 389),
+(81, 45, 390),
+(20, 45, 391),
+(63, 16, 392),
+(54, 23, 393),
+(135, 14, 394),
+(175, 37, 395),
+(123, 42, 396),
+(14, 14, 397),
+(39, 7, 398),
+(41, 6, 399),
+(24, 36, 400),
+(162, 14, 401),
+(153, 5, 402),
+(207, 31, 403),
+(47, 16, 404),
+(102, 29, 405),
+(149, 28, 406),
+(100, 40, 407),
+(213, 46, 408),
+(31, 21, 409),
+(128, 27, 410),
+(204, 15, 411),
+(52, 17, 412),
+(153, 43, 413),
+(80, 27, 414),
+(199, 4, 415),
+(204, 7, 416),
+(174, 24, 417),
+(86, 4, 418),
+(158, 14, 419),
+(7, 39, 420),
+(116, 22, 421),
+(5, 42, 422),
+(17, 19, 423),
+(31, 28, 424),
+(46, 39, 425),
+(81, 37, 426),
+(209, 5, 427),
+(132, 15, 428),
+(54, 28, 429),
+(168, 10, 430),
+(123, 7, 431),
+(108, 42, 432),
+(145, 7, 433),
+(18, 36, 434),
+(214, 50, 435),
+(98, 50, 436),
+(232, 40, 437),
+(49, 45, 438),
+(240, 47, 439),
+(113, 23, 440),
+(137, 22, 441),
+(88, 50, 442),
+(23, 34, 443),
+(75, 22, 444),
+(56, 44, 445),
+(82, 17, 446),
+(143, 8, 447),
+(182, 15, 448),
+(29, 45, 449),
+(200, 25, 450),
+(25, 43, 451),
+(143, 45, 452),
+(182, 4, 453),
+(174, 25, 454),
+(106, 19, 455),
+(191, 1, 456),
+(199, 28, 457),
+(233, 34, 458),
+(9, 7, 459),
+(140, 18, 460),
+(205, 30, 461),
+(201, 24, 462),
+(121, 30, 463),
+(213, 45, 464),
+(126, 39, 465),
+(86, 7, 466),
+(203, 25, 467),
+(133, 20, 468),
+(16, 14, 469),
+(219, 31, 470),
+(79, 31, 471),
+(159, 21, 472),
+(123, 21, 473),
+(12, 20, 474),
+(152, 25, 475),
+(247, 50, 476),
+(229, 8, 477),
+(136, 49, 478),
+(236, 13, 479),
+(142, 16, 480),
+(193, 28, 481),
+(215, 50, 482),
+(35, 35, 483),
+(173, 26, 484),
+(11, 40, 485),
+(184, 16, 486),
+(209, 10, 487),
+(35, 48, 488),
+(72, 46, 489),
+(78, 38, 490),
+(98, 21, 491),
+(32, 43, 492),
+(107, 18, 493),
+(59, 15, 494),
+(110, 16, 495),
+(47, 30, 496),
+(175, 34, 497),
+(108, 23, 498),
+(92, 16, 499),
+(62, 38, 500),
+(20, 11, 501),
+(37, 11, 502),
+(207, 24, 503),
+(198, 35, 504),
+(91, 25, 505),
+(246, 5, 506),
+(112, 25, 507),
+(82, 31, 508),
+(102, 45, 509),
+(244, 45, 510),
+(7, 16, 511),
+(250, 12, 512),
+(189, 5, 513),
+(1, 2, 514),
+(1, 9, 515),
+(1, 9, 516);
+
+CREATE UNIQUE INDEX uq_users_email ON users (email);
+
+ALTER TABLE wishlist
+ADD CONSTRAINT fk_wishlist_stock
+FOREIGN KEY (stock_id) REFERENCES stocks(id);
+
+
+
+
