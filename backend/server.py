@@ -96,11 +96,6 @@ def decode_token(token):
         app.logger.error(f"Token decode error: {e}")
         return None
 
-# ADD THIS AFTER decode_token() TO OVERRIDE IN TESTS
-if os.getenv("FLASK_ENV") == "test":
-    def decode_token(token):
-        return {"sub": "test-user"}
-
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
