@@ -15,6 +15,9 @@ logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 CORS(app)
 
+app.logger.addHandler(logging.StreamHandler(sys.stdout))
+app.logger.setLevel(logging.INFO)
+
 # Database configuration from environment variables
 db_config = {
     'host': os.getenv('DB_HOST'),
