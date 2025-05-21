@@ -1,7 +1,7 @@
 import sys
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import psycopg2-binary
+import psycopg2
 import os
 import jwt
 import requests
@@ -14,7 +14,8 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
-CORS(app)
+# Enable full CORS with credentials
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.INFO)
@@ -34,7 +35,6 @@ COGNITO_APP_CLIENT_ID = os.getenv("COGNITO_APP_CLIENT_ID")
 
 JWKS_URL = f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_POOL_ID}/.well-known/jwks.json"
 
-# Safe JWKS fetcher with error handling
 def get_jwks():
     try:
         resp = requests.get(JWKS_URL, timeout=3)
@@ -55,27 +55,9 @@ def get_db_connection():
 
 def decode_token(token):
     try:
-        headers = jwt.get_unverified_header(token)
-        kid = headers["kid"]
-        key = next((k for k in JWKS["keys"] if k["kid"] == kid), None)
+        if not JWKS or "keys" not in JWKS:
+            raise Exception("Invalid JWKS")  # Fix for empty/missing JWKS
 
-        if not key:
-            raise Exception("Public key not found in JWKS")
-
-        public_key = jwt.algorithms.RSAAlgorithm.from_jwk(key)
-        decoded = jwt.decode(
-            token,
-            public_key,
-            algorithms=["RS256"],
-            audience=COGNITO_APP_CLIENT_ID,
-            issuer=f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_POOL_ID}"
-        )
-        return decoded
-    except Exception as e:
-        app.logger.error(f"Token decode error: {e}")
-        return None
-    def decode_token(token):
-    try:
         headers = jwt.get_unverified_header(token)
         kid = headers["kid"]
         key = next((k for k in JWKS["keys"] if k["kid"] == kid), None)
@@ -104,7 +86,10 @@ def login_required(f):
         user = decode_token(token)
         if not user:
             app.logger.warning("Unauthorized access attempt")
-            return jsonify({"error": "Unauthorized"}), 401
+            # Add CORS to error response
+            response = jsonify({"error": "Unauthorized"})
+            response.headers.add("Access-Control-Allow-Origin", "*")
+            return response, 401
         request.user = user
         return f(*args, **kwargs)
     return decorated_function
@@ -119,10 +104,13 @@ def get_stocks():
                 rows = cur.fetchall()
                 colnames = [desc[0] for desc in cur.description]
                 stocks = [dict(zip(colnames, row)) for row in rows]
-        return jsonify(stocks)
+                return jsonify(stocks)
     except Exception as e:
         app.logger.error(f"Error fetching stocks: {e}")
-        return jsonify({'error': 'Error fetching stocks'}), 500
+        # Add CORS to error response
+        response = jsonify({'error': 'Error fetching stocks'})
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response, 500
 
 @app.route('/wishlist', methods=['GET'])
 @login_required
@@ -140,10 +128,12 @@ def get_wishlist():
                 rows = cur.fetchall()
                 colnames = [desc[0] for desc in cur.description]
                 wishlist = [dict(zip(colnames, row)) for row in rows]
-        return jsonify(wishlist)
+                return jsonify(wishlist)
     except Exception as e:
         app.logger.error(f"Error fetching wishlist: {e}")
-        return jsonify({'error': 'Error fetching wishlist'}), 500
+        response = jsonify({'error': 'Error fetching wishlist'})
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response, 500
 
 @app.route('/wishlist', methods=['POST'])
 @login_required
@@ -155,21 +145,23 @@ def add_to_wishlist():
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                # Check stock availability
                 cur.execute("SELECT quantity FROM Stocks WHERE id = %s", (stock_id,))
                 row = cur.fetchone()
                 if not row or row[0] <= 0:
-                    return jsonify({'error': 'Stock not available'}), 400
+                    response = jsonify({'error': 'Stock not available'})
+                    response.headers.add("Access-Control-Allow-Origin", "*")
+                    return response, 400
 
-                # Add to wishlist and update stock
                 cur.execute("INSERT INTO Wishlist (user_sub, stock_id) VALUES (%s, %s)", (user_sub, stock_id))
                 cur.execute("UPDATE Stocks SET quantity = quantity - 1 WHERE id = %s", (stock_id,))
                 conn.commit()
 
-        return jsonify({'message': 'Stock added to wishlist'}), 200
+                return jsonify({'message': 'Stock added to wishlist'}), 200
     except Exception as e:
         app.logger.error(f"Error adding to wishlist: {e}")
-        return jsonify({'error': 'Error adding to wishlist'}), 500
+        response = jsonify({'error': 'Error adding to wishlist'})
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response, 500
 
 @app.route('/wishlist', methods=['DELETE'])
 @login_required
@@ -185,10 +177,12 @@ def remove_from_wishlist():
                 cur.execute("UPDATE Stocks SET quantity = quantity + 1 WHERE id = %s", (stock_id,))
                 conn.commit()
 
-        return jsonify({'message': 'Stock removed from wishlist'}), 200
+                return jsonify({'message': 'Stock removed from wishlist'}), 200
     except Exception as e:
         app.logger.error(f"Error removing from wishlist: {e}")
-        return jsonify({'error': 'Error removing from wishlist'}), 500
+        response = jsonify({'error': 'Error removing from wishlist'})
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response, 500
 
 @app.route('/')
 def health_check():
@@ -196,8 +190,8 @@ def health_check():
     return jsonify({'message': 'Server is running'})
 
 # For AWS Lambda support
-def handler(event, context): 
-    import awsgi 
+def handler(event, context):
+    import awsgi
     return awsgi.response(app, event, context)
 
 if __name__ == '__main__':
