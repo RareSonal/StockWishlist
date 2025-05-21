@@ -2,6 +2,7 @@ Flask
 flask-cors
 psycopg2
 PyJWT
+cryptography
 awsgi
 requests
 python-dotenv
