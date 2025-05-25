@@ -1,8 +1,9 @@
+// frontend/src/aws-exports.js
 const awsExports = {
   Auth: {
-    region: 'us-east-1', // your region
-    userPoolId: 'us-east-1_XXXXXXXXX',
-    userPoolWebClientId: 'xxxxxxxxxxxxxxxxxxxxxxxxxx',
+    region: process.env.VUE_APP_REGION,
+    userPoolId: process.env.VUE_APP_USER_POOL_ID,
+    userPoolWebClientId: process.env.VUE_APP_CLIENT_ID,
     authenticationFlowType: 'USER_PASSWORD_AUTH',
   },
   API: {
@@ -10,12 +11,12 @@ const awsExports = {
       {
         name: 'stocksApi',
         endpoint: 'https://your-api-id.execute-api.us-east-1.amazonaws.com/prod',
-        region: 'us-east-1',
+        region: process.env.VUE_APP_REGION,
       },
       {
         name: 'wishlistApi',
         endpoint: 'https://your-api-id.execute-api.us-east-1.amazonaws.com/prod',
-        region: 'us-east-1',
+        region: process.env.VUE_APP_REGION,
       },
     ],
   },
