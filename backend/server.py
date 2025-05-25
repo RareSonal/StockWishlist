@@ -9,18 +9,16 @@ from dotenv import load_dotenv
 from functools import wraps
 import logging
 
-# Initialize environment variables and logging
+# Initialize environment and logging
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
-# Enable full CORS with credentials
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
-
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.INFO)
 
-# Database configuration from environment variables
+# Environment config
 db_config = {
     'host': os.getenv('DB_HOST'),
     'dbname': os.getenv('DB_NAME'),
@@ -32,7 +30,6 @@ db_config = {
 COGNITO_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
 COGNITO_REGION = os.getenv("COGNITO_REGION")
 COGNITO_APP_CLIENT_ID = os.getenv("COGNITO_APP_CLIENT_ID")
-
 JWKS_URL = f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_POOL_ID}/.well-known/jwks.json"
 
 def get_jwks():
@@ -42,8 +39,6 @@ def get_jwks():
     except Exception as e:
         app.logger.error(f"Failed to fetch JWKS: {e}")
         return None
-
-JWKS = get_jwks()
 
 def get_db_connection():
     try:
@@ -55,14 +50,13 @@ def get_db_connection():
 
 def decode_token(token):
     try:
-        jwks = get_jwks()  # <- fetch fresh JWKS every time
-        if not JWKS or "keys" not in JWKS:
-            raise Exception("Invalid JWKS")  # Fix for empty/missing JWKS
+        jwks = get_jwks()
+        if not jwks or "keys" not in jwks:
+            raise Exception("Invalid JWKS")
 
         headers = jwt.get_unverified_header(token)
         kid = headers["kid"]
-        key = next((k for k in JWKS["keys"] if k["kid"] == kid), None)
-
+        key = next((k for k in jwks["keys"] if k["kid"] == kid), None)
         if not key:
             raise Exception("Public key not found in JWKS")
 
@@ -79,6 +73,17 @@ def decode_token(token):
         app.logger.error(f"Token decode error: {e}")
         return None
 
+def get_user_id_from_email(email):
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+                result = cur.fetchone()
+                return result[0] if result else None
+    except Exception as e:
+        app.logger.error(f"Error fetching user_id for email {email}: {e}")
+        return None
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -87,11 +92,14 @@ def login_required(f):
         user = decode_token(token)
         if not user:
             app.logger.warning("Unauthorized access attempt")
-            # Add CORS to error response
-            response = jsonify({"error": "Unauthorized"})
-            response.headers.add("Access-Control-Allow-Origin", "*")
-            return response, 401
-        request.user = user
+            return jsonify({"error": "Unauthorized"}), 401
+
+        email = user.get("email")
+        user_id = get_user_id_from_email(email)
+        if not user_id:
+            return jsonify({"error": "User not found"}), 404
+
+        request.user_id = user_id  # Use user_id from your DB
         return f(*args, **kwargs)
     return decorated_function
 
@@ -108,38 +116,33 @@ def get_stocks():
                 return jsonify(stocks)
     except Exception as e:
         app.logger.error(f"Error fetching stocks: {e}")
-        # Add CORS to error response
-        response = jsonify({'error': 'Error fetching stocks'})
-        response.headers.add("Access-Control-Allow-Origin", "*")
-        return response, 500
+        return jsonify({'error': 'Error fetching stocks'}), 500
 
 @app.route('/wishlist', methods=['GET'])
 @login_required
 def get_wishlist():
-    user_sub = request.user.get("sub")
+    user_id = request.user_id
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
-                    SELECT w.user_sub, s.id AS stock_id, s.name
+                    SELECT w.user_id, s.id AS stock_id, s.name
                     FROM Wishlist w
                     JOIN Stocks s ON w.stock_id = s.id
-                    WHERE w.user_sub = %s
-                """, (user_sub,))
+                    WHERE w.user_id = %s
+                """, (user_id,))
                 rows = cur.fetchall()
                 colnames = [desc[0] for desc in cur.description]
                 wishlist = [dict(zip(colnames, row)) for row in rows]
                 return jsonify(wishlist)
     except Exception as e:
         app.logger.error(f"Error fetching wishlist: {e}")
-        response = jsonify({'error': 'Error fetching wishlist'})
-        response.headers.add("Access-Control-Allow-Origin", "*")
-        return response, 500
+        return jsonify({'error': 'Error fetching wishlist'}), 500
 
 @app.route('/wishlist', methods=['POST'])
 @login_required
 def add_to_wishlist():
-    user_sub = request.user.get("sub")
+    user_id = request.user_id
     data = request.get_json()
     stock_id = data.get('stock_id')
 
@@ -149,45 +152,36 @@ def add_to_wishlist():
                 cur.execute("SELECT quantity FROM Stocks WHERE id = %s", (stock_id,))
                 row = cur.fetchone()
                 if not row or row[0] <= 0:
-                    response = jsonify({'error': 'Stock not available'})
-                    response.headers.add("Access-Control-Allow-Origin", "*")
-                    return response, 400
+                    return jsonify({'error': 'Stock not available'}), 400
 
-                cur.execute("INSERT INTO Wishlist (user_sub, stock_id) VALUES (%s, %s)", (user_sub, stock_id))
+                cur.execute("INSERT INTO Wishlist (user_id, stock_id) VALUES (%s, %s)", (user_id, stock_id))
                 cur.execute("UPDATE Stocks SET quantity = quantity - 1 WHERE id = %s", (stock_id,))
                 conn.commit()
-
                 return jsonify({'message': 'Stock added to wishlist'}), 200
     except Exception as e:
         app.logger.error(f"Error adding to wishlist: {e}")
-        response = jsonify({'error': 'Error adding to wishlist'})
-        response.headers.add("Access-Control-Allow-Origin", "*")
-        return response, 500
+        return jsonify({'error': 'Error adding to wishlist'}), 500
 
 @app.route('/wishlist', methods=['DELETE'])
 @login_required
 def remove_from_wishlist():
-    user_sub = request.user.get("sub")
+    user_id = request.user_id
     data = request.get_json()
     stock_id = data.get('stock_id')
 
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute("DELETE FROM Wishlist WHERE user_sub = %s AND stock_id = %s", (user_sub, stock_id))
+                cur.execute("DELETE FROM Wishlist WHERE user_id = %s AND stock_id = %s", (user_id, stock_id))
                 cur.execute("UPDATE Stocks SET quantity = quantity + 1 WHERE id = %s", (stock_id,))
                 conn.commit()
-
                 return jsonify({'message': 'Stock removed from wishlist'}), 200
     except Exception as e:
         app.logger.error(f"Error removing from wishlist: {e}")
-        response = jsonify({'error': 'Error removing from wishlist'})
-        response.headers.add("Access-Control-Allow-Origin", "*")
-        return response, 500
+        return jsonify({'error': 'Error removing from wishlist'}), 500
 
 @app.route('/')
 def health_check():
-    app.logger.info("Health check successful")
     return jsonify({'message': 'Server is running'})
 
 # For AWS Lambda support
