@@ -1,0 +1,29 @@
+# Terraform state files
+terraform.tfstate
+terraform.tfstate.backup
+
+# Terraform working directory
+.terraform/
+
+# Terraform lock file (do not ignore)
+!.terraform.lock.hcl
+
+# Sensitive variable files (if used)
+*.tfvars
+
+# Optional: Ignore bootstrap directory after it's applied
+main/bootstrap/
+
+# Node.js dependencies (if any)
+node_modules/
+
+# Python bytecode files (if any)
+__pycache__/
+
+# IDE/editor configurations
+.vscode/
+.idea/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
