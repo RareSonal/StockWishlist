@@ -1,47 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="<%= BASE_URL %>favicon.ico" />
     <title>Stock Wishlist</title>
-    
-    <!-- Add AWS Amplify scripts -->
+
+    <!-- AWS Amplify CDN -->
     <script src="https://cdn.jsdelivr.net/npm/aws-amplify@4.3.10/dist/aws-amplify.min.js"></script>
 
-    <!-- Add Vuetify CSS (if not bundled via Webpack) -->
-    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.5.10/dist/vuetify.min.css" rel="stylesheet">
+    <!-- Optional Vuetify CSS CDN if not bundled -->
+    <!-- <link href="https://cdn.jsdelivr.net/npm/vuetify@2.5.10/dist/vuetify.min.css" rel="stylesheet" /> -->
   </head>
   <body>
     <noscript>
-      <strong>We're sorry but Stock Wishlist doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+      <strong
+        >We're sorry but Stock Wishlist doesn't work properly without JavaScript
+        enabled. Please enable it to continue.</strong
+      >
     </noscript>
+
     <div id="app"></div>
-    <!-- built files will be auto injected -->
 
-    <!-- Add Vue.js script -->
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <!-- Vue and Vuetify scripts are bundled in app.js -->
 
-    <!-- Add Vuetify JS (if not bundled via Webpack) -->
-    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.5.10/dist/vuetify.js"></script>
+    <!-- Vue CLI will auto inject your built scripts here -->
+    <!-- Do NOT hardcode app.js path; let Vue CLI manage this -->
 
-    <!-- Your custom JS bundle (Vue + Amplify initialization, etc.) -->
-    <script src="dist/js/app.js"></script>
-
-    <!-- Initialize AWS Amplify configuration -->
+    <!-- Initialize AWS Amplify with env variables injected during build -->
     <script>
-      // This will be your Amplify configuration, which can be imported into your app
-      AWS.config.region = 'us-east-1';  // Set your AWS region here
-      AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-        IdentityPoolId: 'us-east-1:EXAMPLE_POOL_ID',  // Set your identity pool ID here
-      });
-      // Amplify Auth configuration can be added here (via AWS Amplify library)
       Amplify.configure({
         Auth: {
-          region: 'us-east-1', // region
-          userPoolId: 'us-east-1_EXAMPLE', // Your Cognito User Pool ID
-          userPoolWebClientId: 'EXAMPLE_CLIENT_ID', // Your User Pool Web Client ID
+          region: '<%= VUE_APP_REGION %>', // e.g. 'us-east-1'
+          userPoolId: '<%= VUE_APP_USER_POOL_ID %>',
+          userPoolWebClientId: '<%= VUE_APP_CLIENT_ID %>',
           mandatorySignIn: true,
         },
       });
