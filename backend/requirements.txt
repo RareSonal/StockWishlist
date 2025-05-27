@@ -6,3 +6,4 @@ cryptography
 awsgi
 requests
 python-dotenv
+boto3
