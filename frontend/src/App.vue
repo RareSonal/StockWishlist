@@ -1,24 +1,20 @@
 <template>
-  <v-app>
-    <amplify-authenticator>
-      <router-view />
-    </amplify-authenticator>
-  </v-app>
+<v-app>
+<router-view />
+</v-app>
 </template>
 
 <script>
-import '@aws-amplify/ui-vue';
-
 export default {
-  name: 'App'
+name: 'App'
 };
 </script>
 
 <style>
-/* Optional: Style overrides for Amplify Auth UI */
-amplify-authenticator {
-  display: block;
-  margin: auto;
-  max-width: 400px;
+/* Global styles or layout tweaks can go here */
+body {
+font-family: 'Roboto', sans-serif;
+background-color: #f5f5f5;
+margin: 0;
 }
 </style>
