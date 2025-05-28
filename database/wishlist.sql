@@ -851,6 +851,10 @@ ALTER TABLE wishlist
 ADD CONSTRAINT fk_wishlist_stock
 FOREIGN KEY (stock_id) REFERENCES stocks(id);
 
+ALTER TABLE wishlist
+ADD CONSTRAINT fk_wishlist_user
+FOREIGN KEY (user_id) REFERENCES users(id);
+
 
 
 
