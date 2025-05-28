@@ -3,6 +3,10 @@ name: Bootstrap Terraform Backend
 on:
   workflow_dispatch:  # Manual trigger from GitHub UI
 
+permissions:
+  id-token: write      # Required for OIDC
+  contents: read       # Needed to checkout code
+
 jobs:
   bootstrap:
     runs-on: ubuntu-latest
@@ -10,8 +14,20 @@ jobs:
       AWS_REGION: us-east-1
 
     steps:
+      - name: Enable GitHub Actions step debug logging
+        run: echo "ACTIONS_STEP_DEBUG=true" >> $GITHUB_ENV
+
       - name: Checkout Repository
         uses: actions/checkout@v3
+
+      # Optional: Dump OIDC token for debugging (you can comment this out after it's working)
+      - name: Dump GitHub OIDC token
+        run: |
+          curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+               "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq .
+        env:
+          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTIONS_ID_TOKEN_REQUEST_URL: https://token.actions.githubusercontent.com/.well-known/openid-configuration
 
       - name: Configure AWS Credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v2
@@ -31,10 +47,3 @@ jobs:
       - name: Apply Terraform (Bootstrap Backend Resources)
         working-directory: stockwishlist/main/bootstrap
         run: terraform apply -auto-approve
-
-
-
-
-
-
-
