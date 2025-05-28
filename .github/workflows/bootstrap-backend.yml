@@ -41,9 +41,9 @@ jobs:
           terraform_version: 1.5.6
 
       - name: Initialize Terraform (Bootstrap)
-        working-directory: stockwishlist/main/bootstrap
+        working-directory: bootstrap
         run: terraform init
 
       - name: Apply Terraform (Bootstrap Backend Resources)
-        working-directory: stockwishlist/main/bootstrap
+        working-directory: bootstrap
         run: terraform apply -auto-approve
