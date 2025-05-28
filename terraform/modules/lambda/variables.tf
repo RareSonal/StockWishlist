@@ -1,32 +1,45 @@
+variable "cognito_user_pool_arn" {
+description = "ARN of the Cognito User Pool"
+type = string
+}
+
 variable "subnet_ids" {
-  type = list(string)
+description = "List of subnet IDs for Lambda VPC configuration"
+type = list(string)
 }
 
 variable "lambda_sg_id" {
-  type = string
+description = "Security Group ID for the Lambda function"
+type = string
 }
 
 variable "db_host" {
-  type = string
+description = "Database host address"
+type = string
 }
 
 variable "db_username" {
-  type = string
+description = "Username for connecting to the database"
+type = string
 }
 
 variable "db_password" {
-  type = string
+description = "Password for connecting to the database"
+type = string
 }
 
 variable "cognito_user_pool_id" {
-  type = string
+description = "ID of the Cognito User Pool"
+type = string
 }
 
 variable "cognito_client_id" {
-  type = string
+description = "Cognito App Client ID"
+type = string
 }
 
 variable "region" {
-  type    = string
-  default = "us-east-1"
+description = "AWS region to deploy resources"
+type = string
+default = "us-east-1"
 }
