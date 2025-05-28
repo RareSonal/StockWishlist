@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = "stockwishlist-terraform-state"
+  bucket = "raresonal-stockwishlist-terraform-state-bucket"
 
   versioning {
     enabled = true
