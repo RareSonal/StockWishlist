@@ -1,0 +1,40 @@
+name: Bootstrap Terraform Backend
+
+on:
+  workflow_dispatch:  # Manual trigger from GitHub UI
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.6
+
+      - name: Initialize Terraform (Bootstrap)
+        working-directory: stockwishlist/main/bootstrap
+        run: terraform init
+
+      - name: Apply Terraform (Bootstrap Backend Resources)
+        working-directory: stockwishlist/main/bootstrap
+        run: terraform apply -auto-approve
+
+
+
+
+
+
+
