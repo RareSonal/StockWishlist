@@ -117,8 +117,7 @@ jobs:
             -var="db_username=${{ secrets.DB_USERNAME }}" \
             -var="db_password=${{ secrets.DB_PASSWORD }}" \
             -var="vpc_id=${{ secrets.VPC_ID }}" \
-            -var="private_subnet_ids=${{ secrets.PRIVATE_SUBNET_IDS }}" \
-            -var="github_oauth_token=${{ secrets.GITHUB_OAUTH_TOKEN }}"
+            -var="github_oauth_token=${{ secrets.GHUB_OAUTH_TOKEN }}"
 
           terraform show -no-color tfplan > plan.txt
           if grep -q "No changes." plan.txt; then
@@ -159,17 +158,17 @@ jobs:
           fi
 
       # ---------- Lock Down RDS ----------
-      - name: Terraform Apply (Lock Down RDS to Private)
-        working-directory: terraform
-        run: |
-          terraform apply -auto-approve \
-            -var="use_public_subnet_for_rds=false" \
-            -var="public_subnet_ids=${{ secrets.PUBLIC_SUBNET_IDS }}" \
-            -var="db_username=${{ secrets.DB_USERNAME }}" \
-            -var="db_password=${{ secrets.DB_PASSWORD }}" \
-            -var="vpc_id=${{ secrets.VPC_ID }}" \
-            -var="private_subnet_ids=${{ secrets.PRIVATE_SUBNET_IDS }}" \
-            -var="github_oauth_token=${{ secrets.GITHUB_OAUTH_TOKEN }}"
+      # - name: Terraform Apply (Lock Down RDS to Private)
+      #  working-directory: terraform
+      #  run: |
+      #   terraform apply -auto-approve \
+      #      -var="use_public_subnet_for_rds=false" \
+      #      -var="public_subnet_ids=${{ secrets.PUBLIC_SUBNET_IDS }}" \
+      #      -var="db_username=${{ secrets.DB_USERNAME }}" \
+      #      -var="db_password=${{ secrets.DB_PASSWORD }}" \
+      #      -var="vpc_id=${{ secrets.VPC_ID }}" \
+      #      -var="private_subnet_ids=${{ secrets.PRIVATE_SUBNET_IDS }}" \
+      #      -var="github_oauth_token=${{ secrets.GITHUB_OAUTH_TOKEN }}"
 
       # ---------- Frontend ----------
       - name: Set up Node.js
