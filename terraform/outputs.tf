@@ -14,3 +14,11 @@ output "ssm_db_username" {
   value     = module.ssm_parameters.ssm_db_username
   sensitive = true
 }
+
+output "user_migration_lambda_arn" {
+  value = module.lambda.user_migration_lambda_arn
+}
+
+output "lambda_arn" {
+  value = module.lambda.lambda_arn
+}
