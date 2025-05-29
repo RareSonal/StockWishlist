@@ -1,17 +1,19 @@
 name: Bootstrap Terraform Backend
 
 on:
-  workflow_dispatch:  # Manual trigger from GitHub UI
+  workflow_dispatch:
 
 permissions:
-  id-token: write      # Required for OIDC
-  contents: read       # Needed to checkout code
+  id-token: write
+  contents: read
 
 jobs:
   bootstrap:
     runs-on: ubuntu-latest
     env:
       AWS_REGION: us-east-1
+      S3_BUCKET_NAME: raresonal-stockwishlist-terraform-state-bucket
+      DYNAMODB_TABLE_NAME: raresonal-stockwishlist-terraform-lock-table
 
     steps:
       - name: Enable GitHub Actions step debug logging
@@ -20,7 +22,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      # Optional: Dump OIDC token for debugging (you can comment this out after it's working)
       - name: Dump GitHub OIDC token
         run: |
           curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
@@ -40,10 +41,41 @@ jobs:
         with:
           terraform_version: 1.5.6
 
+      - name: Check if S3 Bucket Already Exists
+        id: check_bucket
+        run: |
+          if aws s3api head-bucket --bucket "$S3_BUCKET_NAME" 2>/dev/null; then
+            echo "S3_BUCKET_EXISTS=true" >> $GITHUB_ENV
+            echo "ℹ️ S3 bucket already exists: $S3_BUCKET_NAME"
+          else
+            echo "S3_BUCKET_EXISTS=false" >> $GITHUB_ENV
+            echo "✅ S3 bucket does not exist."
+          fi
+
+      - name: Check if DynamoDB Table Already Exists
+        id: check_table
+        run: |
+          if aws dynamodb describe-table --table-name "$DYNAMODB_TABLE_NAME" 2>/dev/null; then
+            echo "DYNAMO_TABLE_EXISTS=true" >> $GITHUB_ENV
+            echo "ℹ️ DynamoDB table already exists: $DYNAMODB_TABLE_NAME"
+          else
+            echo "DYNAMO_TABLE_EXISTS=false" >> $GITHUB_ENV
+            echo "✅ DynamoDB table does not exist."
+          fi
+
       - name: Initialize Terraform (Bootstrap)
         working-directory: bootstrap
         run: terraform init
 
+      - name: Terraform Plan (Bootstrap)
+        working-directory: bootstrap
+        run: terraform plan
+
       - name: Apply Terraform (Bootstrap Backend Resources)
+        if: env.S3_BUCKET_EXISTS == 'false' || env.DYNAMO_TABLE_EXISTS == 'false'
         working-directory: bootstrap
         run: terraform apply -auto-approve
+
+      - name: Skip Apply - All Resources Exist
+        if: env.S3_BUCKET_EXISTS == 'true' && env.DYNAMO_TABLE_EXISTS == 'true'
+        run: echo "🚫 Skipping Terraform apply — All backend resources already exist."
