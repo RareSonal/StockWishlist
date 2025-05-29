@@ -48,7 +48,9 @@ jobs:
 
       - name: Package Lambda Function Code
         working-directory: backend
-        run: zip -r ../function-code.zip server.py
+        run: |
+          zip -r function-code.zip server.py
+          ls -lh function-code.zip
 
       - name: Move Lambda Code Zip
         run: mv backend/function-code.zip terraform/build/function-code.zip
