@@ -46,7 +46,7 @@ resource "aws_iam_role_policy_attachment" "lambda_cloudwatch_policy_attachment" 
   policy_arn = aws_iam_policy.lambda_cloudwatch_policy.arn
 }
 
-# Allow Lambda to perform Cognito user migration
+# Allow Lambda to perform Cognito actions (still allowed, but optional use)
 resource "aws_iam_policy" "lambda_cognito_policy" {
   name        = "lambda-cognito-policy"
   description = "Allow Lambda to interact with Cognito for user migration"
@@ -100,19 +100,16 @@ resource "aws_lambda_function" "flask_backend" {
 
   environment {
     variables = {
-      DB_HOST               = var.db_host
-      DB_USER               = var.db_username
-      DB_PASSWORD           = var.db_password
-      DB_NAME               = "stockwishlist"
-      DB_PORT               = "5432"
-      COGNITO_USER_POOL_ID  = var.cognito_user_pool_id
-      COGNITO_REGION        = var.region
-      COGNITO_APP_CLIENT_ID = var.cognito_client_id
+      DB_HOST = var.db_host
+      DB_USER = var.db_username
+      DB_PASSWORD = var.db_password
+      DB_NAME = "stockwishlist"
+      DB_PORT = "5432"
     }
   }
 }
 
-# User Migration Lambda
+# User Migration Lambda (Cognito lambda config will attach this externally)
 resource "aws_lambda_function" "user_migration" {
   function_name = "user-migration-lambda"
   role          = aws_iam_role.lambda_exec.arn
@@ -130,21 +127,10 @@ resource "aws_lambda_function" "user_migration" {
 
   environment {
     variables = {
-      DB_HOST              = var.db_host
-      DB_USER              = var.db_username
-      DB_PASSWORD          = var.db_password
-      DB_NAME              = "stockwishlist"
-      COGNITO_USER_POOL_ID = var.cognito_user_pool_id
-      COGNITO_REGION       = var.region
+      DB_HOST = var.db_host
+      DB_USER = var.db_username
+      DB_PASSWORD = var.db_password
+      DB_NAME = "stockwishlist"
     }
   }
-}
-
-# Allow Cognito to invoke the migration Lambda
-resource "aws_lambda_permission" "allow_cognito_invoke" {
-  statement_id  = "AllowExecutionFromCognito"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.user_migration.function_name
-  principal     = "cognito-idp.amazonaws.com"
-  source_arn    = var.cognito_user_pool_arn
 }
