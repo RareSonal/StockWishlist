@@ -1,9 +1,5 @@
 resource "aws_cognito_user_pool" "user_pool" {
-  name = "stockwishlist-user-pool"
-
-  lambda_config {
-    user_migration = var.user_migration_lambda_arn
-  }
+  name = "stockwishlist-user-pool"  
 }
 
 resource "aws_cognito_user_pool_client" "user_pool_client" {
