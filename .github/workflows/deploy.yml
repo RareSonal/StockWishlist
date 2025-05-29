@@ -112,12 +112,12 @@ jobs:
         working-directory: terraform
         run: |
           terraform plan -out=tfplan \
-            -var="use_public_subnet_for_rds=true" \
-            -var="public_subnet_ids=${{ secrets.PUBLIC_SUBNET_IDS }}" \
-            -var="db_username=${{ secrets.DB_USERNAME }}" \
-            -var="db_password=${{ secrets.DB_PASSWORD }}" \
-            -var="vpc_id=${{ secrets.VPC_ID }}" \
-            -var="github_oauth_token=${{ secrets.GHUB_OAUTH_TOKEN }}"
+            -var='use_public_subnet_for_rds=true' \
+            -var='public_subnet_ids=${{ secrets.PUBLIC_SUBNET_IDS }}' \
+            -var='db_username=${{ secrets.DB_USERNAME }}' \
+            -var='db_password=${{ secrets.DB_PASSWORD }}' \
+            -var='vpc_id=${{ secrets.VPC_ID }}' \
+            -var='github_oauth_token=${{ secrets.GHUB_OAUTH_TOKEN }}'
 
           terraform show -no-color tfplan > plan.txt
           if grep -q "No changes." plan.txt; then
