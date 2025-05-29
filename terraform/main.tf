@@ -40,47 +40,31 @@ module "rds" {
 # MODULE: Lambda
 # ─────────────────────────────────────────
 module "lambda" {
-  source               = "./modules/lambda"
-  subnet_ids           = var.private_subnet_ids
-  lambda_sg_id         = module.security_groups.lambda_sg_id
-  db_host              = module.rds.rds_endpoint
-  db_username          = var.db_username
-  db_password          = var.db_password
-  region               = var.region
-  cognito_user_pool_id = ""  # Temporarily empty or provide if you want; cognito user pool not created yet
-  cognito_client_id    = ""  # Same here
+  source       = "./modules/lambda"
+  subnet_ids   = var.private_subnet_ids
+  lambda_sg_id = module.security_groups.lambda_sg_id
+  db_host      = module.rds.rds_endpoint
+  db_username  = var.db_username
+  db_password  = var.db_password
+  region       = var.region
 }
 
 # ─────────────────────────────────────────
 # MODULE: Cognito
 # ─────────────────────────────────────────
 module "cognito" {
-  source                   = "./modules/cognito"
-  user_migration_lambda_arn = module.lambda.user_migration_lambda_arn
+  source                     = "./modules/cognito"
+  user_migration_lambda_arn  = module.lambda.user_migration_lambda_arn
 }
 
 # ─────────────────────────────────────────
-# Fix the cognito outputs references after creation
-# We can use output references for lambda module to update cognito module inputs if needed in more advanced setup
-
+# MODULE: Cognito Lambda Config (Separate to avoid circular dependency)
 # ─────────────────────────────────────────
-# MODULE: Lambda (update with Cognito info if needed)
-# ─────────────────────────────────────────
-# If your Lambda module depends on Cognito outputs (like user_pool_id), you need a two-step apply or move the lambda module after cognito:
-# 
-# module "lambda" {
-#   source               = "./modules/lambda"
-#   subnet_ids           = var.private_subnet_ids
-#   lambda_sg_id         = module.security_groups.lambda_sg_id
-#   db_host              = module.rds.rds_endpoint
-#   db_username          = var.db_username
-#   db_password          = var.db_password
-#   region               = var.region
-#   cognito_user_pool_id = module.cognito.user_pool_id
-#   cognito_client_id    = module.cognito.user_pool_client_id
-# }
-#
-# If you want to do this, remove the previous lambda block and keep this one.
+module "cognito_lambda_config" {
+  source                  = "./modules/cognito_lambda_config"
+  user_pool_id            = module.cognito.user_pool_id
+  user_migration_lambda_arn = module.lambda.user_migration_lambda_arn
+}
 
 # ─────────────────────────────────────────
 # MODULE: CloudWatch (Log Groups & Dashboard)
