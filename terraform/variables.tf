@@ -1,0 +1,30 @@
+variable "use_public_subnet_for_rds" {
+  type    = bool
+  default = true
+}
+
+variable "public_subnet_ids" {
+  type = list(string)
+}
+
+variable "private_subnet_ids" {
+  type = list(string)
+}
+
+variable "vpc_id" {
+  type = string
+}
+
+variable "db_username" {
+  type = string
+}
+
+variable "db_password" {
+  type = string
+  sensitive = true
+}
+
+variable "github_oauth_token" {
+  type = string
+  sensitive = true
+}
