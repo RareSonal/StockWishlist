@@ -58,11 +58,11 @@ module "cognito" {
 # ─────────────────────────────────────────
 # MODULE: Cognito Lambda Config (Separate to avoid circular dependency)
 # ─────────────────────────────────────────
-module "cognito_lambda_config" {
-  source                  = "./modules/cognito_lambda_config"
-  user_pool_id            = module.cognito.user_pool_id
-  user_migration_lambda_arn = module.lambda.user_migration_lambda_arn
-}
+# module "cognito_lambda_config" {
+#  source                  = "./modules/cognito_lambda_config"
+#  user_pool_id            = module.cognito.user_pool_id
+#  user_migration_lambda_arn = module.lambda.user_migration_lambda_arn
+# }
 
 # ─────────────────────────────────────────
 # MODULE: CloudWatch (Log Groups & Dashboard)
