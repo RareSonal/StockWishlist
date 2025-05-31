@@ -1,5 +1,5 @@
 output "rds_endpoint" {
-  value = module.rds.rds_endpoint
+  value = module.rds.endpoint
 }
 
 output "api_url" {
@@ -20,5 +20,5 @@ output "user_migration_lambda_arn" {
 }
 
 output "lambda_arn" {
-  value = module.lambda.lambda_arn
+  value = module.lambda.lambda_invoke_arn
 }
