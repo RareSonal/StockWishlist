@@ -41,7 +41,7 @@ module "lambda" {
   source       = "./modules/lambda"
   subnet_ids   = var.private_subnet_ids
   lambda_sg_id = module.security_groups.lambda_sg_id
-  db_host      = module.rds.rds_endpoint
+  db_host      = module.rds.endpoint
   db_username  = var.db_username
   db_password  = var.db_password
   region       = var.region
@@ -69,7 +69,7 @@ module "cognito_lambda_config" {
 # ─────────────────────────────────────────
 module "cloudwatch" {
   source               = "./modules/cloudwatch"
-  lambda_function_name = module.lambda.function_name
+  lambda_function_name = module.lambda.lambda_function_name
   rds_identifier       = module.rds.rds_identifier
   api_name             = "stockwishlist-api"
   region               = var.region
@@ -80,7 +80,7 @@ module "cloudwatch" {
 # ─────────────────────────────────────────
 module "api_gateway" {
   source                = "./modules/api_gateway"
-  lambda_invoke_arn     = module.lambda.lambda_arn
+  lambda_invoke_arn     = module.lambda.lambda_invoke_arn
   cognito_user_pool_arn = module.cognito.user_pool_arn
   stage_name            = var.api_stage_name
   log_group_arn         = module.cloudwatch.api_log_group_arn
