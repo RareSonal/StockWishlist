@@ -24,3 +24,15 @@ variable "github_oauth_token" {
   type = string
   sensitive = true
 }
+
+variable "region" {
+  description = "AWS region"
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "api_stage_name" {
+  description = "API Gateway stage name"
+  type        = string
+  default     = "prod"
+}
