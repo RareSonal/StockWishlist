@@ -7,15 +7,6 @@ resource "aws_db_subnet_group" "public" {
   }
 }
 
-resource "aws_db_subnet_group" "private" {
-  name       = "stockwishlist-db-subnet-private"
-  subnet_ids = var.private_subnet_ids
-
-  tags = {
-    Name = "StockWishlist DB Private Subnet Group"
-  }
-}
-
 resource "aws_db_instance" "postgres_instance" {
   identifier              = "stockwishlist-postgres"
   engine                  = "postgres"
