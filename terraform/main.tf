@@ -53,6 +53,7 @@ module "lambda" {
 module "cognito" {
   source                     = "./modules/cognito"
   user_migration_lambda_arn  = module.lambda.user_migration_lambda_arn
+  region                     = var.region
 }
 
 # ─────────────────────────────────────────
