@@ -29,10 +29,8 @@ module "rds" {
   source                    = "./modules/rds"
   db_username               = var.db_username
   db_password               = var.db_password
-  vpc_id                    = var.vpc_id
   public_subnet_ids         = var.public_subnet_ids
-  private_subnet_ids        = var.private_subnet_ids
-  rds_sg_id                 = module.security_groups.rds_sg_id
+  security_group_id         = module.security_groups.rds_sg_id
   use_public_subnet_for_rds = var.use_public_subnet_for_rds
 }
 
