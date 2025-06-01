@@ -61,6 +61,14 @@ jobs:
           zip -r user-migration.zip .
           mv user-migration.zip ../../../modules/lambda/build/user-migration.zip
 
+      # ---------- Deploy User Migration Lambda Function ----------
+      - name: Deploy User Migration Lambda Function
+        run: |
+          aws lambda update-function-code \
+          --function-name user-migration-function \
+          --zip-file fileb://modules/lambda/build/user-migration.zip \
+          --region ${{ env.AWS_REGION }}
+
       # ---------- Commit Lambda Artifacts (optional) ----------
       - name: Commit Updated Lambda Artifacts to Repo (with [skip ci])
         run: |
