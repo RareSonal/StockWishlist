@@ -63,9 +63,8 @@ export default {
       }
 
       try {
-        const user = await Auth.signIn(this.email, this.password);
+        await Auth.signIn(this.email, this.password);
         this.successMessage = "Login successful!";
-        sessionStorage.setItem("isLoggedIn", "true");
         this.$router.push("/wishlist");
       } catch (error) {
         switch (error.code) {
