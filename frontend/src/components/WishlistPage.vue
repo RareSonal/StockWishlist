@@ -20,7 +20,9 @@
           <v-card-title>{{ stock.name }}</v-card-title>
           <v-card-subtitle>Quantity: {{ stock.quantity }}</v-card-subtitle>
           <v-card-actions>
-            <v-btn color="primary" @click="addToWishlist(stock.id)">Add to Wishlist</v-btn>
+            <v-btn color="primary" @click="addToWishlist(stock.id)">
+              Add to Wishlist
+            </v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
@@ -41,9 +43,9 @@ export default {
       wishlist: [],
     };
   },
-  mounted() {
-    this.fetchStocks();
-    this.fetchWishlist();
+  async mounted() {
+    await this.fetchStocks();
+    await this.fetchWishlist();
   },
   methods: {
     async fetchStocks() {
@@ -51,7 +53,7 @@ export default {
         const response = await API.get('stocksApi', '/stocks');
         this.stocks = response;
       } catch (error) {
-        console.error('Error fetching stocks:', error);
+        this.handleAuthError(error, 'fetching stocks');
       }
     },
     async fetchWishlist() {
@@ -59,7 +61,7 @@ export default {
         const response = await API.get('wishlistApi', '/wishlist');
         this.wishlist = response;
       } catch (error) {
-        console.error('Error fetching wishlist:', error);
+        this.handleAuthError(error, 'fetching wishlist');
       }
     },
     async addToWishlist(stockId) {
@@ -67,14 +69,24 @@ export default {
         await API.post('wishlistApi', '/wishlist', {
           body: { stock_id: stockId },
         });
-        this.fetchWishlist();
+        await this.fetchWishlist();
+        await this.fetchStocks(); // Refresh stock quantity
       } catch (error) {
-        console.error('Error adding to wishlist:', error);
+        this.handleAuthError(error, 'adding to wishlist');
       }
     },
-    logout() {
-      Auth.signOut();
+    async logout() {
+      await Auth.signOut();
       this.$router.push('/login');
+    },
+    async handleAuthError(error, action) {
+      if (error.response && error.response.status === 401) {
+        console.warn(`Unauthorized while ${action}. Signing out...`);
+        await Auth.signOut();
+        this.$router.push('/login');
+      } else {
+        console.error(`Error ${action}:`, error);
+      }
     },
   },
 };
