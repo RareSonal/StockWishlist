@@ -47,19 +47,21 @@ jobs:
           cd ..
           mv python-deps-layer.zip ../modules/lambda/build/python-deps-layer.zip
 
-      # ---------- Package Backend Lambda (function-code.zip) ----------
-      - name: Package Lambda Function Code
-        working-directory: backend
-        run: |
-          zip -r function-code.zip server.py
-          mv function-code.zip ../modules/lambda/build/function-code.zip
-
       # ---------- Package User Migration Lambda (user-migration.zip) ----------
       - name: Package User Migration Lambda
         working-directory: backend/user_migration
         run: |
           zip -r user_migration.zip .
-          mv user_migration.zip ../../../modules/lambda/build/user_migration.zip
+          mkdir -p ../../../modules/lambda/build
+          mv user_migration.zip ../../../modules/lambda/build/user-migration.zip
+
+      # ---------- Deploy User Migration Lambda Function ----------
+      - name: Deploy User Migration Lambda Function
+        run: |
+          aws lambda update-function-code \
+          --function-name user-migration-function \
+          --zip-file fileb://modules/lambda/build/user-migration.zip \
+          --region ${{ env.AWS_REGION }}
 
       # ---------- Deploy User Migration Lambda Function ----------
       - name: Deploy User Migration Lambda Function
