@@ -7,3 +7,4 @@ awsgi
 requests
 python-dotenv
 boto3
+bcrypt
