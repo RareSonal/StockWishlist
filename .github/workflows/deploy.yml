@@ -49,19 +49,23 @@ jobs:
 
       # ---------- Package User Migration Lambda (user-migration.zip) ----------
       - name: Package User Migration Lambda
-        working-directory: backend/user_migration
         run: |
-          zip -r user_migration.zip .
-          mkdir -p ../../../modules/lambda/build
-          mv user_migration.zip ../../../modules/lambda/build/user-migration.zip
+          mkdir -p modules/lambda/build
+          zip -r modules/lambda/build/user-migration.zip backend/user_migration
 
       # ---------- Deploy User Migration Lambda Function ----------
       - name: Deploy User Migration Lambda Function
         run: |
+          if [ ! -f modules/lambda/build/user-migration.zip ]; then
+          echo "Error: user-migration.zip not found!"
+          exit 1
+          fi
+
           aws lambda update-function-code \
           --function-name user-migration-function \
           --zip-file fileb://modules/lambda/build/user-migration.zip \
           --region ${{ env.AWS_REGION }}
+
 
       # ---------- Deploy User Migration Lambda Function ----------
       - name: Deploy User Migration Lambda Function
