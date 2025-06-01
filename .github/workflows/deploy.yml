@@ -36,7 +36,7 @@ jobs:
       - name: Create Lambda Build Directory
         run: mkdir -p modules/lambda/build
 
-      # ---------- Package Lambda Layer ----------
+      # ---------- Package Lambda Layer (Python Dependencies) ----------
       - name: Package Lambda Layer (Python Dependencies)
         working-directory: backend
         run: |
@@ -47,16 +47,15 @@ jobs:
           cd ..
           mv python-deps-layer.zip ../modules/lambda/build/python-deps-layer.zip
 
-      # ---------- Package User Migration Lambda (user-migration.zip) ----------
+      # ---------- Package User Migration Lambda ----------
       - name: Package User Migration Lambda
         run: |
-          mkdir -p modules/lambda/build
           zip -r modules/lambda/build/user-migration.zip backend/user_migration
 
-      # ---------- Create User Migration Lambda Function if not exists ----------
-      - name: Create User Migration Lambda Function if not exists
+      # ---------- Create User Migration Lambda Function (if not exists) ----------
+      - name: Create User Migration Lambda Function (if not exists)
         run: |
-          if ! aws lambda get-function --function-name user-migration-function --region ${{ env.AWS_REGION }}; then
+          if ! aws lambda get-function --function-name user-migration-function --region ${{ env.AWS_REGION }} > /dev/null 2>&1; then
             echo "Lambda function does not exist. Creating..."
             aws lambda create-function \
             --function-name user-migration-function \
@@ -66,7 +65,7 @@ jobs:
             --zip-file fileb://modules/lambda/build/user-migration.zip \
             --region ${{ env.AWS_REGION }}
 
-            echo "Waiting for Lambda function to become active..."
+            echo "Waiting for Lambda function to become available..."
             aws lambda wait function-exists \
             --function-name user-migration-function \
             --region ${{ env.AWS_REGION }}
@@ -79,18 +78,14 @@ jobs:
         run: |
           if [ ! -f modules/lambda/build/user-migration.zip ]; then
             echo "Error: user-migration.zip not found!"
-          exit 1
+            exit 1
           fi
 
-            echo "Waiting for Lambda function to be active before updating..."
-            aws lambda wait function-updated \
-            --function-name user-migration-function \
-            --region ${{ env.AWS_REGION }}
-
-            aws lambda update-function-code \
-            --function-name user-migration-function \
-            --zip-file fileb://modules/lambda/build/user-migration.zip \
-            --region ${{ env.AWS_REGION }}
+          echo "Updating Lambda function code..."
+          aws lambda update-function-code \
+          --function-name user-migration-function \
+          --zip-file fileb://modules/lambda/build/user-migration.zip \
+          --region ${{ env.AWS_REGION }}
 
       # ---------- Commit Lambda Artifacts (optional) ----------
       - name: Commit Updated Lambda Artifacts to Repo (with [skip ci])
