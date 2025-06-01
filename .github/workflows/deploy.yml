@@ -59,7 +59,7 @@ jobs:
         working-directory: backend/user_migration
         run: |
           zip -r user_migration.zip .
-          mv user-migration.zip ../../../modules/lambda/build/user-migration.zip
+          mv user_migration.zip ../../../modules/lambda/build/user_migration.zip
 
       # ---------- Deploy User Migration Lambda Function ----------
       - name: Deploy User Migration Lambda Function
