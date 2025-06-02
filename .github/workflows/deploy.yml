@@ -45,11 +45,14 @@ jobs:
         run: |
           mkdir -p python
           pip install -r requirements.txt -t python
+          ls -al python
           cd python
           zip -r ../python-deps-layer.zip .
           cd ..
           mkdir -p ../modules/lambda/build
           mv python-deps-layer.zip ../modules/lambda/build/python-deps-layer.zip
+          echo "✅ Lambda Layer ZIP created"
+          ls -al ../modules/lambda/build
 
       # ---------- Package Flask Backend Lambda ----------
       - name: 📦 Package Flask Backend Lambda
@@ -65,6 +68,13 @@ jobs:
         run: |
           zip -r modules/lambda/build/user-migration.zip backend/user_migration
 
+      # ✅ Verify Lambda Artifacts Exist
+      - name: ✅ Verify All Lambda Build Artifacts Exist
+        run: |
+          test -f modules/lambda/build/python-deps-layer.zip && echo "✅ python-deps-layer.zip found"
+          test -f modules/lambda/build/function-code.zip && echo "✅ function-code.zip found"
+          test -f modules/lambda/build/user-migration.zip && echo "✅ user-migration.zip found"
+
       # ---------- Terraform ----------
       - name: ⚙️ Set up Terraform
         uses: hashicorp/setup-terraform@v2
@@ -75,18 +85,24 @@ jobs:
         working-directory: terraform
         run: terraform init
 
+      # ✅ Create terraform.tfvars file
+      - name: 🔧 Generate terraform.tfvars from GitHub Secrets
+        working-directory: terraform
+        run: |
+          cat <<EOF > terraform.tfvars
+          use_public_subnet_for_rds = true
+          public_subnet_ids = ${PUBLIC_SUBNET_IDS}
+          db_username = "${DB_USER}"
+          db_password = "${DB_PASSWORD}"
+          vpc_id = "${{ secrets.VPC_ID }}"
+          github_oauth_token = "${{ secrets.GHUB_OAUTH_TOKEN }}"
+          EOF
+
       - name: 📋 Terraform Plan and Save Output
         id: tf_plan
         working-directory: terraform
         run: |
-          terraform plan -out=tfplan \
-            -var='use_public_subnet_for_rds=true' \
-            -var='public_subnet_ids=${{ secrets.PUBLIC_SUBNET_IDS }}' \
-            -var='db_username=${{ secrets.DB_USERNAME }}' \
-            -var='db_password=${{ secrets.DB_PASSWORD }}' \
-            -var='vpc_id=${{ secrets.VPC_ID }}' \
-            -var='github_oauth_token=${{ secrets.GHUB_OAUTH_TOKEN }}'
-
+          terraform plan -out=tfplan
           terraform show -no-color tfplan > plan.txt
           if grep -q "No changes." plan.txt; then
             echo "NO_CHANGES=true" >> $GITHUB_ENV
