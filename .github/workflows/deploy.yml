@@ -17,27 +17,30 @@ jobs:
       AWS_REGION: us-east-1
 
     steps:
-      - name: Checkout code
+      - name: 🧾 Checkout Code
         uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: 🐍 Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.12"
 
-      - name: Set up Node.js
+      - name: 🟢 Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: "18"
 
-      - name: Configure AWS Credentials (OIDC)
+      - name: 🔐 Configure AWS Credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
 
-      # ---------- Package Lambda Layer ----------
-      - name: Package Python Dependencies as Lambda Layer
+      - name: 📁 Ensure Lambda Build Directory Exists
+        run: mkdir -p modules/lambda/build
+
+      # ---------- Lambda Layer ----------
+      - name: 📦 Package Python Dependencies as Lambda Layer
         working-directory: backend
         run: |
           mkdir -p python
@@ -45,31 +48,36 @@ jobs:
           cd python
           zip -r ../python-deps-layer.zip .
           cd ..
+          mkdir -p ../modules/lambda/build
           mv python-deps-layer.zip ../modules/lambda/build/python-deps-layer.zip
 
       # ---------- Package Flask Backend Lambda ----------
-      - name: Package Flask Backend Lambda
+      - name: 📦 Package Flask Backend Lambda
         run: |
           mkdir -p backend/lambda_package
           pip install -r backend/requirements.txt -t backend/lambda_package/
           cp backend/server.py backend/lambda_package/
-          ls backend/lambda_package  # Debug
-          
+          cd backend/lambda_package
+          zip -r ../../modules/lambda/build/function-code.zip .
+          cd ../..
+          rm -rf backend/lambda_package
+
       # ---------- Package User Migration Lambda ----------
-      - name: Confirm user_migration exists
-        run: ls backend/user_migration
+      - name: 📦 Package User Migration Lambda
+        run: |
+          zip -r modules/lambda/build/user-migration.zip backend/user_migration
 
       # ---------- Terraform ----------
-      - name: Set up Terraform
+      - name: ⚙️ Set up Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.6
 
-      - name: Terraform Init
+      - name: ⚙️ Terraform Init
         working-directory: terraform
         run: terraform init
 
-      - name: Terraform Plan and Save Output
+      - name: 📋 Terraform Plan and Save Output
         id: tf_plan
         working-directory: terraform
         run: |
@@ -88,22 +96,22 @@ jobs:
             echo "NO_CHANGES=false" >> $GITHUB_ENV
           fi
 
-      - name: Terraform Apply (If Changes)
+      - name: 🚀 Terraform Apply (If Changes)
         if: env.NO_CHANGES == 'false'
         working-directory: terraform
         run: terraform apply -auto-approve tfplan
 
-      - name: Skip Terraform Apply (No Changes)
+      - name: ⏭️ Skip Terraform Apply (No Changes)
         if: env.NO_CHANGES == 'true'
         run: echo "✅ Skipping apply — no changes detected."
 
       # ---------- Database Seeding ----------
-      - name: Get RDS Host from Terraform Output
+      - name: 🏗️ Get RDS Host from Terraform Output
         id: rds
         working-directory: terraform
         run: echo "RDS_HOST=$(terraform output -raw rds_endpoint)" >> $GITHUB_ENV
 
-      - name: Seed PostgreSQL Database (Idempotent)
+      - name: 🌱 Seed PostgreSQL Database (Idempotent)
         if: success()
         run: |
           sudo apt-get update && sudo apt-get install -y postgresql-client
@@ -118,17 +126,17 @@ jobs:
           fi
 
       # ---------- Frontend ----------
-      - name: Install Frontend Dependencies
+      - name: 📦 Install Frontend Dependencies
         working-directory: frontend
         run: npm install
 
-      - name: Create .env.production from GitHub Secrets
+      - name: 🛠️ Create .env.production from GitHub Secrets
         working-directory: frontend
         run: |
           echo "VUE_APP_REGION=${{ secrets.COGNITO_REGION }}" > .env.production
           echo "VUE_APP_USER_POOL_ID=${{ secrets.COGNITO_USER_POOL_ID }}" >> .env.production
           echo "VUE_APP_CLIENT_ID=${{ secrets.COGNITO_APP_CLIENT_ID }}" >> .env.production
 
-      - name: Build Frontend App
+      - name: 🏗️ Build Frontend App
         working-directory: frontend
         run: npm run build
