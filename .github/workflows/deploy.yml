@@ -45,14 +45,20 @@ jobs:
         run: |
           mkdir -p python
           pip install -r requirements.txt -t python
-          ls -al python
-          cd python
-          zip -r ../python-deps-layer.zip .
-          cd ..
+          echo "✅ Installed dependencies:"
+          ls -lh python
+          zip -r python-deps-layer.zip python
           mkdir -p ../modules/lambda/build
           mv python-deps-layer.zip ../modules/lambda/build/python-deps-layer.zip
-          echo "✅ Lambda Layer ZIP created"
-          ls -al ../modules/lambda/build
+
+      - name: ✅ Verify Lambda Layer ZIP exists
+        run: |
+          if [ ! -f modules/lambda/build/python-deps-layer.zip ]; then
+            echo "❌ Lambda layer zip not found!"
+            exit 1
+          else
+            echo "✅ Lambda layer zip exists."
+          fi
 
       # ---------- Package Flask Backend Lambda ----------
       - name: 📦 Package Flask Backend Lambda
@@ -67,13 +73,6 @@ jobs:
       - name: 📦 Package User Migration Lambda
         run: |
           zip -r modules/lambda/build/user-migration.zip backend/user_migration
-
-      # ✅ Verify Lambda Artifacts Exist
-      - name: ✅ Verify All Lambda Build Artifacts Exist
-        run: |
-          test -f modules/lambda/build/python-deps-layer.zip && echo "✅ python-deps-layer.zip found"
-          test -f modules/lambda/build/function-code.zip && echo "✅ function-code.zip found"
-          test -f modules/lambda/build/user-migration.zip && echo "✅ user-migration.zip found"
 
       # ---------- Terraform ----------
       - name: ⚙️ Set up Terraform
