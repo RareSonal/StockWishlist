@@ -67,11 +67,18 @@ resource "aws_api_gateway_stage" "api_stage" {
       responseLatency = "$context.responseLatency"
     })
   }
+}
 
-  method_settings {
-    resource_path    = "/*"
-    http_method      = "*"
-    logging_level    = "INFO"
-    metrics_enabled  = true
+resource "aws_api_gateway_method_settings" "method_settings" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  stage_name  = aws_api_gateway_stage.api_stage.stage_name
+  method_path = "/*/*"  # applies to all resources and methods
+
+  settings {
+    logging_level       = "INFO"
+    metrics_enabled     = true
+    data_trace_enabled  = true
+    throttling_burst_limit = 5000
+    throttling_rate_limit  = 10000
   }
 }
