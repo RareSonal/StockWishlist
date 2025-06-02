@@ -85,7 +85,6 @@ jobs:
         working-directory: terraform
         run: terraform init
 
-      # ✅ Create terraform.tfvars file
       - name: 🔧 Generate terraform.tfvars from GitHub Secrets
         working-directory: terraform
         run: |
@@ -97,6 +96,8 @@ jobs:
           vpc_id = "${{ secrets.VPC_ID }}"
           github_oauth_token = "${{ secrets.GHUB_OAUTH_TOKEN }}"
           EOF
+        env:
+          PUBLIC_SUBNET_IDS: ${{ secrets.PUBLIC_SUBNET_IDS }}
 
       - name: 📋 Terraform Plan and Save Output
         id: tf_plan
