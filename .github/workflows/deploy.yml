@@ -52,6 +52,17 @@ jobs:
         run: |
           zip -r modules/lambda/build/user-migration.zip backend/user_migration
 
+      # ---------- Package Flask Backend Lambda ----------
+      - name: Package Flask Backend Lambda
+        run: |
+          mkdir -p backend/lambda_package
+          pip install -r backend/requirements.txt -t backend/lambda_package/
+          cp backend/server.py backend/lambda_package/
+          cd backend/lambda_package
+          zip -r ../../modules/lambda/build/function-code.zip .
+          cd -
+          rm -rf backend/lambda_package
+
       # ---------- Create User Migration Lambda Function (if not exists) ----------
       - name: Create User Migration Lambda Function (if not exists)
         run: |
