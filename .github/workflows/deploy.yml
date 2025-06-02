@@ -55,7 +55,7 @@ jobs:
 
       - name: ✅ Verify Lambda Layer ZIP exists
         run: |
-          if [ ! -f modules/lambda/build/python-deps-layer.zip ]; then
+          if [ ! -f terraform/modules/lambda/build/python-deps-layer.zip ]; then
             echo "❌ Lambda layer zip not found!"
             exit 1
           else
