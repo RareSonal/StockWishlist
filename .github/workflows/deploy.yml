@@ -20,11 +20,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # ---------- Set up Python ----------
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.12
+          python-version: "3.12"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
 
       - name: Configure AWS Credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v2
@@ -32,12 +36,8 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
 
-      # ---------- Create Lambda Build Directory ----------
-      - name: Create Lambda Build Directory
-        run: mkdir -p modules/lambda/build
-
-      # ---------- Package Lambda Layer (Python Dependencies) ----------
-      - name: Package Lambda Layer (Python Dependencies)
+      # ---------- Package Lambda Layer ----------
+      - name: Package Python Dependencies as Lambda Layer
         working-directory: backend
         run: |
           mkdir -p python
@@ -47,21 +47,17 @@ jobs:
           cd ..
           mv python-deps-layer.zip ../modules/lambda/build/python-deps-layer.zip
 
-      # ---------- Package User Migration Lambda ----------
-      - name: Package User Migration Lambda
-        run: |
-          zip -r modules/lambda/build/user-migration.zip backend/user_migration
-
       # ---------- Package Flask Backend Lambda ----------
       - name: Package Flask Backend Lambda
         run: |
           mkdir -p backend/lambda_package
           pip install -r backend/requirements.txt -t backend/lambda_package/
           cp backend/server.py backend/lambda_package/
-          cd backend/lambda_package
-          zip -r ../../modules/lambda/build/function-code.zip .
-          cd ../..
-          rm -rf backend/lambda_package
+          ls backend/lambda_package  # Debug
+          
+      # ---------- Package User Migration Lambda ----------
+      - name: Confirm user_migration exists
+        run: ls backend/user_migration
 
       # ---------- Terraform ----------
       - name: Set up Terraform
@@ -112,10 +108,8 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y postgresql-client
           curl -L -o wishlist.sql https://raw.githubusercontent.com/RareSonal/StockWishlist/main/database/wishlist.sql
-
           export PGPASSWORD="${DB_PASSWORD}"
           TABLE_EXISTS=$(psql -h "${RDS_HOST}" -U "$DB_USER" -d stockwishlist -tAc "SELECT to_regclass('public.wishlist');")
-
           if [ "$TABLE_EXISTS" = "wishlist" ]; then
             echo "✅ Wishlist table already exists. Skipping seed."
           else
@@ -124,11 +118,6 @@ jobs:
           fi
 
       # ---------- Frontend ----------
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
       - name: Install Frontend Dependencies
         working-directory: frontend
         run: npm install
