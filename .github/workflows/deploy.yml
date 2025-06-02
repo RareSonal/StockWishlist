@@ -43,13 +43,15 @@ jobs:
       - name: 📦 Package Python Dependencies as Lambda Layer
         working-directory: backend
         run: |
+          rm -rf python python-deps-layer.zip
           mkdir -p python
           pip install -r requirements.txt -t python
-          echo "✅ Installed dependencies:"
-          ls -lh python
-          zip -r python-deps-layer.zip python
-          mkdir -p ../modules/lambda/build
-          mv python-deps-layer.zip ../modules/lambda/build/python-deps-layer.zip
+          cd python
+          zip -r ../python-deps-layer.zip .
+          cd ..
+          mkdir -p ../terraform/modules/lambda/build
+          mv python-deps-layer.zip ../terraform/modules/lambda/build/python-deps-layer.zip
+
 
       - name: ✅ Verify Lambda Layer ZIP exists
         run: |
