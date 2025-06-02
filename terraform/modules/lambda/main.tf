@@ -73,14 +73,14 @@ resource "aws_lambda_layer_version" "python_deps" {
 # Archive Flask Backend
 data "archive_file" "flask_backend" {
   type        = "zip"
-  source_dir  = "${path.module}/../../backend/lambda_package"
+  source_dir  = "${path.module}/../../../backend/lambda_package"
   output_path = "${path.module}/build/function-code.zip"
 }
 
 # Archive User Migration Lambda
 data "archive_file" "user_migration" {
   type        = "zip"
-  source_dir  = "${path.module}/../../backend/user_migration"
+  source_dir  = "${path.module}/../../../backend/user_migration"
   output_path = "${path.module}/build/user-migration.zip"
 }
 
