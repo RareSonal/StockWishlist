@@ -1,0 +1,10 @@
+Flask
+flask-cors
+psycopg2-binary
+PyJWT
+cryptography
+awsgi
+requests
+python-dotenv
+boto3
+bcrypt
