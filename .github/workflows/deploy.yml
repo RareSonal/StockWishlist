@@ -56,11 +56,9 @@ jobs:
         run: |
           mkdir -p backend/lambda_package
           pip install -r backend/requirements.txt -t backend/lambda_package/
-          cp backend/server.py backend/lambda_package/
           cd backend/lambda_package
           zip -r ../../modules/lambda/build/function-code.zip .
           cd ../..
-          rm -rf backend/lambda_package
 
       # ---------- Package User Migration Lambda ----------
       - name: 📦 Package User Migration Lambda
