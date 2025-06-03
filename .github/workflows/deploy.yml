@@ -116,11 +116,9 @@ jobs:
         run: echo "✅ Skipping apply — no changes detected."
 
       - name: 🏗️ Get RDS Host from Terraform Output
-        id: rds
+        id: get_rds_host
         working-directory: terraform
-        run: |
-          RDS_HOST=$(terraform output -raw rds_endpoint | head -n1 | tr -d '\r\n')
-          echo "RDS_HOST=$RDS_HOST" >> $GITHUB_ENV
+        run: echo "::set-output name=RDS_HOST::$(terraform output -raw rds_endpoint | tr -d '\r\n')"
 
       - name: 🌱 Seed PostgreSQL Database (Idempotent)
         if: success()
