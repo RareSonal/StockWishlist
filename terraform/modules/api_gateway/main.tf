@@ -27,26 +27,32 @@ locals {
 }
 
 resource "aws_api_gateway_method" "api_methods" {
-  for_each       = local.http_methods_auth
-  rest_api_id    = aws_api_gateway_rest_api.api.id
-  resource_id    = aws_api_gateway_resource.api_resource.id
-  http_method    = each.key
-  authorization  = each.value
-  authorizer_id  = each.value == "COGNITO_USER_POOLS" ? aws_api_gateway_authorizer.cognito_auth.id : null
+  for_each      = local.http_methods_auth
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  resource_id   = aws_api_gateway_resource.api_resource.id
+  http_method   = each.key
+  authorization = each.value
+  authorizer_id = each.value == "COGNITO_USER_POOLS" ? aws_api_gateway_authorizer.cognito_auth.id : null
 }
 
 resource "aws_api_gateway_integration" "integrations" {
-  for_each                = local.http_methods_auth
-  rest_api_id             = aws_api_gateway_rest_api.api.id
-  resource_id             = aws_api_gateway_resource.api_resource.id
-  http_method             = each.key
+  for_each = aws_api_gateway_method.api_methods
+
+  rest_api_id             = each.value.rest_api_id
+  resource_id             = each.value.resource_id
+  http_method             = each.value.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = var.lambda_invoke_arn
+
+  depends_on = [aws_api_gateway_method.api_methods]
 }
 
 resource "aws_api_gateway_deployment" "api_deployment" {
-  depends_on  = [aws_api_gateway_integration.integrations]
+  depends_on  = [
+    aws_api_gateway_integration.integrations,
+    aws_api_gateway_method.api_methods
+  ]
   rest_api_id = aws_api_gateway_rest_api.api.id
 }
 
@@ -72,12 +78,12 @@ resource "aws_api_gateway_stage" "api_stage" {
 resource "aws_api_gateway_method_settings" "method_settings" {
   rest_api_id = aws_api_gateway_rest_api.api.id
   stage_name  = aws_api_gateway_stage.api_stage.stage_name
-  method_path = "/*/*"  # applies to all resources and methods
+  method_path = "/*/*"
 
   settings {
-    logging_level       = "INFO"
-    metrics_enabled     = true
-    data_trace_enabled  = true
+    logging_level          = "INFO"
+    metrics_enabled        = true
+    data_trace_enabled     = true
     throttling_burst_limit = 5000
     throttling_rate_limit  = 10000
   }
