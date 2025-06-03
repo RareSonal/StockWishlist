@@ -14,7 +14,6 @@ jobs:
     env:
       DB_USER: ${{ secrets.DB_USERNAME }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      AWS_REGION: us-east-1
 
     steps:
       - name: 🧾 Checkout Code
@@ -33,13 +32,12 @@ jobs:
       - name: 🔐 Configure AWS Credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: us-east-1
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
 
       - name: 📁 Ensure Lambda Build Directory Exists
         run: mkdir -p modules/lambda/build
 
-      # ---------- Lambda Layer ----------
       - name: 📦 Package Python Dependencies as Lambda Layer
         working-directory: backend
         run: |
@@ -50,8 +48,7 @@ jobs:
           zip -r ../python-deps-layer.zip .
           cd ..
           mkdir -p ../terraform/modules/lambda/build
-          mv python-deps-layer.zip ../terraform/modules/lambda/build/python-deps-layer.zip
-
+          mv python-deps-layer.zip ../terraform/modules/lambda/build/
 
       - name: ✅ Verify Lambda Layer ZIP exists
         run: |
@@ -62,7 +59,6 @@ jobs:
             echo "✅ Lambda layer zip exists."
           fi
 
-      # ---------- Package Flask Backend Lambda ----------
       - name: 📦 Package Flask Backend Lambda
         run: |
           mkdir -p backend/lambda_package
@@ -71,12 +67,10 @@ jobs:
           zip -r ../../modules/lambda/build/function-code.zip .
           cd ../..
 
-      # ---------- Package User Migration Lambda ----------
       - name: 📦 Package User Migration Lambda
         run: |
           zip -r modules/lambda/build/user-migration.zip backend/user_migration
 
-      # ---------- Terraform ----------
       - name: ⚙️ Set up Terraform
         uses: hashicorp/setup-terraform@v2
         with:
@@ -121,7 +115,6 @@ jobs:
         if: env.NO_CHANGES == 'true'
         run: echo "✅ Skipping apply — no changes detected."
 
-      # ---------- Database Seeding ----------
       - name: 🏗️ Get RDS Host from Terraform Output
         id: rds
         working-directory: terraform
@@ -141,7 +134,6 @@ jobs:
             psql -h "${RDS_HOST}" -U "$DB_USER" -d stockwishlist -f wishlist.sql
           fi
 
-      # ---------- Frontend ----------
       - name: 📦 Install Frontend Dependencies
         working-directory: frontend
         run: npm install
