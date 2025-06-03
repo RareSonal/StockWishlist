@@ -123,7 +123,7 @@ jobs:
         id: get_rds_host
         working-directory: terraform
         run: |
-          RDS_HOST=$(terraform output -raw rds_endpoint 2>/dev/null | tr -d '\r\n')
+          RDS_HOST=$(terraform output -raw rds_endpoint | grep -v '^::debug::' | tail -n1 | tr -d '\r\n')
           echo "RDS_HOST=$RDS_HOST" >> $GITHUB_OUTPUT
 
       - name: 🌱 Seed PostgreSQL Database (Idempotent)
