@@ -124,8 +124,9 @@ jobs:
         working-directory: terraform
         run: |
           FULL_OUTPUT=$(terraform output -raw rds_endpoint)
-          RDS_HOST=${FULL_OUTPUT%%::debug::*}
-          RDS_HOST=$(echo "$RDS_HOST" | tr -d '\r\n' | xargs)
+          echo "🔍 RAW OUTPUT: $FULL_OUTPUT"  # <--- This line helps debug the exact value returned
+          RDS_HOST=$(echo "$FULL_OUTPUT" | tr -d '\r\n' | xargs)
+          echo "Cleaned RDS_HOST: $RDS_HOST"
           echo "RDS_HOST=$RDS_HOST" >> $GITHUB_OUTPUT
 
       - name: 🌱 Seed PostgreSQL Database (Idempotent)
