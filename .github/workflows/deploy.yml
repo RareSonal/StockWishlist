@@ -84,13 +84,13 @@ jobs:
         working-directory: terraform
         run: |
           cat <<EOF > terraform.tfvars
-        use_public_subnet_for_rds = true
-        public_subnet_ids = ${PUBLIC_SUBNET_IDS}
-        db_username = "${DB_USER}"
-        db_password = "${DB_PASSWORD}"
-        vpc_id = "${{ secrets.VPC_ID }}"
-        github_oauth_token = "${{ secrets.GHUB_OAUTH_TOKEN }}"
-        EOF
+          use_public_subnet_for_rds = true
+          public_subnet_ids = ${PUBLIC_SUBNET_IDS}
+          db_username = "${DB_USER}"
+          db_password = "${DB_PASSWORD}"
+          vpc_id = "${{ secrets.VPC_ID }}"
+          github_oauth_token = "${{ secrets.GHUB_OAUTH_TOKEN }}"
+          EOF
         env:
           PUBLIC_SUBNET_IDS: ${{ secrets.PUBLIC_SUBNET_IDS }}
 
