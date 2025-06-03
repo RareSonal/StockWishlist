@@ -123,7 +123,8 @@ jobs:
         id: get_rds_host
         working-directory: terraform
         run: |
-          echo "RDS_HOST=$(terraform output -raw rds_endpoint)" >> $GITHUB_OUTPUT
+          RDS_HOST=$(terraform output -raw rds_endpoint | tr -d '\r\n')
+          printf "RDS_HOST=%s\n" "$RDS_HOST" >> $GITHUB_OUTPUT
 
       - name: 🌱 Seed PostgreSQL Database (Idempotent)
         env:
@@ -138,8 +139,8 @@ jobs:
           if [ "$TABLE_EXISTS" = "wishlist" ]; then
             echo "✅ Wishlist table already exists. Skipping seed."
           else
-            echo "🌱 Seeding database..."
-            psql -h "$RDS_HOST" -U "$DB_USER" -d stockwishlist -f wishlist.sql
+           echo "🌱 Seeding database..."
+           psql -h "$RDS_HOST" -U "$DB_USER" -d stockwishlist -f wishlist.sql
           fi
 
       - name: 📦 Install Frontend Dependencies
