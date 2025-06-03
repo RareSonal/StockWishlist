@@ -4,9 +4,10 @@ provider "aws" {
 
 data "aws_caller_identity" "current" {}
 
-# ─────────────────────────────────────────
-# MODULE: SSM Parameters
-# ─────────────────────────────────────────
+# ─────────────────────────────────────────────
+# SYSTEM CONFIGURATION MODULES
+# ─────────────────────────────────────────────
+
 module "ssm_parameters" {
   source             = "./modules/ssm_parameters"
   github_oauth_token = var.github_oauth_token
@@ -14,17 +15,15 @@ module "ssm_parameters" {
   db_password        = var.db_password
 }
 
-# ─────────────────────────────────────────
-# MODULE: Security Groups
-# ─────────────────────────────────────────
 module "security_groups" {
   source = "./modules/security_groups"
   vpc_id = var.vpc_id
 }
 
-# ─────────────────────────────────────────
-# MODULE: RDS
-# ─────────────────────────────────────────
+# ─────────────────────────────────────────────
+# DATABASE MODULE
+# ─────────────────────────────────────────────
+
 module "rds" {
   source                    = "./modules/rds"
   db_username               = var.db_username
@@ -34,9 +33,10 @@ module "rds" {
   use_public_subnet_for_rds = var.use_public_subnet_for_rds
 }
 
-# ─────────────────────────────────────────
-# MODULE: Lambda
-# ─────────────────────────────────────────
+# ─────────────────────────────────────────────
+# BACKEND: LAMBDA MODULE
+# ─────────────────────────────────────────────
+
 module "lambda" {
   source       = "./modules/lambda"
   subnet_ids   = var.public_subnet_ids
@@ -47,27 +47,20 @@ module "lambda" {
   region       = var.region
 }
 
-# ─────────────────────────────────────────
-# MODULE: Cognito
-# ─────────────────────────────────────────
+# ─────────────────────────────────────────────
+# AUTHENTICATION: COGNITO MODULE
+# ─────────────────────────────────────────────
+
 module "cognito" {
-  source                     = "./modules/cognito"
-  user_migration_lambda_arn  = module.lambda.user_migration_lambda_arn
-  region                     = var.region
+  source                    = "./modules/cognito"
+  user_migration_lambda_arn = module.lambda.user_migration_lambda_arn
+  region                    = var.region
 }
 
-# ─────────────────────────────────────────
-# MODULE: Cognito Lambda Config (Separate to avoid circular dependency)
-# ─────────────────────────────────────────
-# module "cognito_lambda_config" {
-#  source                  = "./modules/cognito_lambda_config"
-#  user_pool_id            = module.cognito.user_pool_id
-#  user_migration_lambda_arn = module.lambda.user_migration_lambda_arn
-# }
+# ─────────────────────────────────────────────
+# MONITORING: CLOUDWATCH MODULE
+# ─────────────────────────────────────────────
 
-# ─────────────────────────────────────────
-# MODULE: CloudWatch (Log Groups & Dashboard)
-# ─────────────────────────────────────────
 module "cloudwatch" {
   source               = "./modules/cloudwatch"
   lambda_function_name = module.lambda.lambda_function_name
@@ -76,9 +69,10 @@ module "cloudwatch" {
   region               = var.region
 }
 
-# ─────────────────────────────────────────
-# MODULE: API Gateway
-# ─────────────────────────────────────────
+# ─────────────────────────────────────────────
+# API GATEWAY MODULE
+# ─────────────────────────────────────────────
+
 module "api_gateway" {
   source                = "./modules/api_gateway"
   lambda_invoke_arn     = module.lambda.lambda_invoke_arn
@@ -87,9 +81,10 @@ module "api_gateway" {
   log_group_arn         = module.cloudwatch.api_log_group_arn
 }
 
-# ─────────────────────────────────────────
-# MODULE: Amplify Frontend
-# ─────────────────────────────────────────
+# ─────────────────────────────────────────────
+# FRONTEND DEPLOYMENT: AMPLIFY MODULE
+# ─────────────────────────────────────────────
+
 module "amplify" {
   source               = "./modules/amplify"
   github_oauth_token   = var.github_oauth_token
