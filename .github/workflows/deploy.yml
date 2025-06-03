@@ -118,10 +118,7 @@ jobs:
       - name: 🏗️ Get RDS Host from Terraform Output
         id: rds
         working-directory: terraform
-        run: |
-          echo "RDS_HOST<<EOF" >> $GITHUB_ENV
-          terraform output -raw rds_endpoint >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+        run: echo "RDS_HOST=$(terraform output -raw rds_endpoint)" >> $GITHUB_ENV
 
       - name: 🌱 Seed PostgreSQL Database (Idempotent)
         if: success()
