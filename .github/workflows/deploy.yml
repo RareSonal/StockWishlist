@@ -122,18 +122,13 @@ jobs:
       - name: 🏗️ Get RDS Host from Terraform Output
         id: get_rds_host
         working-directory: terraform
-        run: |
-          FULL_OUTPUT=$(terraform output -raw rds_endpoint)
-          echo "🔍 RAW OUTPUT: $FULL_OUTPUT"  # <--- This line helps debug the exact value returned
-          RDS_HOST=$(echo "$FULL_OUTPUT" | tr -d '\r\n' | xargs)
-          echo "Cleaned RDS_HOST: $RDS_HOST"
-          echo "RDS_HOST=$RDS_HOST" >> $GITHUB_OUTPUT
+        run: echo "rds_endpoint=$(terraform output -raw rds_endpoint)" >> $GITHUB_OUTPUT
 
       - name: 🌱 Seed PostgreSQL Database (Idempotent)
         env:
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_USER: ${{ secrets.DB_USERNAME }}
-          RDS_HOST: ${{ steps.get_rds_host.outputs.RDS_HOST }}
+          RDS_HOST: ${{ steps.get_rds_host.outputs.rds_endpoint }}
         run: |
           echo "Using RDS_HOST=$RDS_HOST"
           sudo apt-get update && sudo apt-get install -y postgresql-client
