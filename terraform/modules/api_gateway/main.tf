@@ -38,21 +38,20 @@ resource "aws_api_gateway_method" "api_methods" {
 resource "aws_api_gateway_integration" "integrations" {
   for_each = aws_api_gateway_method.api_methods
 
-  rest_api_id             = each.value.rest_api_id
-  resource_id             = each.value.resource_id
-  http_method             = each.value.http_method
+  rest_api_id             = aws_api_gateway_rest_api.api.id
+  resource_id             = aws_api_gateway_resource.api_resource.id
+  http_method             = each.key
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = var.lambda_invoke_arn
-
-  depends_on = [aws_api_gateway_method.api_methods]
 }
 
 resource "aws_api_gateway_deployment" "api_deployment" {
-  depends_on  = [
+  depends_on = [
     aws_api_gateway_integration.integrations,
     aws_api_gateway_method.api_methods
   ]
+
   rest_api_id = aws_api_gateway_rest_api.api.id
 }
 
@@ -78,7 +77,7 @@ resource "aws_api_gateway_stage" "api_stage" {
 resource "aws_api_gateway_method_settings" "method_settings" {
   rest_api_id = aws_api_gateway_rest_api.api.id
   stage_name  = aws_api_gateway_stage.api_stage.stage_name
-  method_path = "/*/*"
+  method_path = "*/*" 
 
   settings {
     logging_level          = "INFO"
