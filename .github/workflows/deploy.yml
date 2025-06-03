@@ -115,26 +115,26 @@ jobs:
         if: env.NO_CHANGES == 'true'
         run: echo "✅ Skipping apply — no changes detected."
 
+      - name: 🏗️ Debug Terraform RDS Host output
+        working-directory: terraform
+        run: terraform output -raw rds_endpoint
+
       - name: 🏗️ Get RDS Host from Terraform Output
         id: get_rds_host
         working-directory: terraform
         run: |
           echo "RDS_HOST=$(terraform output -raw rds_endpoint | tr -d '\r\n')" >> $GITHUB_OUTPUT
 
-      - name: 🏗️ Debug Terraform RDS Host output
-        working-directory: terraform
-        run: terraform output -raw rds_endpoint
-
       - name: 🌱 Seed PostgreSQL Database (Idempotent)
         if: success()
         env:
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_USER: ${{ secrets.DB_USERNAME }}
-          RDS_HOST: ${{ env.RDS_HOST }}
+          RDS_HOST: ${{ steps.get_rds_host.outputs.RDS_HOST }}
         run: |
+          echo "Using RDS_HOST=$RDS_HOST"
           sudo apt-get update && sudo apt-get install -y postgresql-client
           curl -L -o wishlist.sql https://raw.githubusercontent.com/RareSonal/StockWishlist/main/database/wishlist.sql
-          echo "Using RDS_HOST=$RDS_HOST"
           TABLE_EXISTS=$(psql -h "$RDS_HOST" -U "$DB_USER" -d stockwishlist -tAc "SELECT to_regclass('public.wishlist');")
           if [ "$TABLE_EXISTS" = "wishlist" ]; then
             echo "✅ Wishlist table already exists. Skipping seed."
