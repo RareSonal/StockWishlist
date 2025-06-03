@@ -122,8 +122,12 @@ jobs:
       - name: 🏗️ Get RDS Host from Terraform Output
         id: get_rds_host
         working-directory: terraform
-        run: echo "rds_endpoint=$(terraform output -raw rds_endpoint)" >> $GITHUB_OUTPUT
-
+        run: |
+          RAW_OUTPUT=$(terraform output rds_endpoint | tr -d '"')
+          CLEANED_HOST=$(echo "$RAW_OUTPUT" | cut -d':' -f1 | tr -d '\r\n' | xargs)
+          echo "✅ Parsed RDS host: $CLEANED_HOST"
+          echo "rds_endpoint=$CLEANED_HOST" >> $GITHUB_OUTPUT
+          
       - name: 🌱 Seed PostgreSQL Database (Idempotent)
         env:
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}
