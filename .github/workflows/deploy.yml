@@ -123,10 +123,9 @@ jobs:
         id: get_rds_host
         working-directory: terraform
         run: |
-          echo "RDS_HOST=$(terraform output -raw rds_endpoint | tr -d '\r\n')" >> $GITHUB_OUTPUT
+          echo "RDS_HOST=$(terraform output -raw rds_endpoint)" >> $GITHUB_OUTPUT
 
       - name: 🌱 Seed PostgreSQL Database (Idempotent)
-        if: success()
         env:
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_USER: ${{ secrets.DB_USERNAME }}
