@@ -115,20 +115,16 @@ jobs:
         if: env.NO_CHANGES == 'true'
         run: echo "✅ Skipping apply — no changes detected."
 
-      - name: 🏗️ Debug Terraform RDS Host output
-        working-directory: terraform
-        run: terraform output -raw rds_endpoint
-
       - name: 🏗️ Get RDS Host from Terraform Output
         id: get_rds_host
         working-directory: terraform
         run: |
           set -euo pipefail
-          RAW_OUTPUT=$(terraform output -raw rds_endpoint || terraform output rds_endpoint | tr -d '"')
-          CLEANED_HOST=$(echo "$RAW_OUTPUT" | cut -d':' -f1 | tr -d '\r\n' | xargs)
-          echo "✅ Parsed RDS host: $CLEANED_HOST"
-          echo "rds_endpoint=$CLEANED_HOST" >> $GITHUB_OUTPUT
-          
+          HOST=$(terraform output -raw rds_endpoint)
+          HOST_CLEAN=$(echo "$HOST" | cut -d':' -f1 | tr -d '\r\n' | xargs)
+          echo "✅ Parsed RDS host: $HOST_CLEAN"
+          echo "rds_endpoint=$HOST_CLEAN" >> "$GITHUB_OUTPUT"
+
       - name: 🌱 Seed PostgreSQL Database (Idempotent)
         env:
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}
@@ -137,7 +133,7 @@ jobs:
         run: |
           set -euo pipefail
           echo "Using RDS_HOST=$RDS_HOST"
-    
+
           if [[ -z "$RDS_HOST" || "$RDS_HOST" == *"terraform"* ]]; then
             echo "❌ Invalid RDS_HOST value: $RDS_HOST"
             exit 1
