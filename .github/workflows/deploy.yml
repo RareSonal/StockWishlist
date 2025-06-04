@@ -132,7 +132,7 @@ jobs:
           echo "rds_endpoint=$RDS_HOST_CLEAN" >> "$GITHUB_OUTPUT"
 
       - name: 🧪 Log Parsed RDS Host
-        run: echo "Parsed from Terraform output: ${{ steps.get_rds_host.outputs.rds_endpoint }}"
+        run: echo "Parsed from Terraform output = ${{ steps.get_rds_host.outputs.rds_endpoint }}"
 
       - name: 🌱 Seed PostgreSQL Database (Idempotent)
         env:
