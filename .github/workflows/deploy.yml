@@ -123,7 +123,8 @@ jobs:
         id: get_rds_host
         working-directory: terraform
         run: |
-          RAW_OUTPUT=$(terraform output rds_endpoint | tr -d '"')
+          set -euo pipefail
+          RAW_OUTPUT=$(terraform output -raw rds_endpoint || terraform output rds_endpoint | tr -d '"')
           CLEANED_HOST=$(echo "$RAW_OUTPUT" | cut -d':' -f1 | tr -d '\r\n' | xargs)
           echo "✅ Parsed RDS host: $CLEANED_HOST"
           echo "rds_endpoint=$CLEANED_HOST" >> $GITHUB_OUTPUT
@@ -134,15 +135,23 @@ jobs:
           DB_USER: ${{ secrets.DB_USERNAME }}
           RDS_HOST: ${{ steps.get_rds_host.outputs.rds_endpoint }}
         run: |
+          set -euo pipefail
           echo "Using RDS_HOST=$RDS_HOST"
+    
+          if [[ -z "$RDS_HOST" || "$RDS_HOST" == *"terraform"* ]]; then
+            echo "❌ Invalid RDS_HOST value: $RDS_HOST"
+            exit 1
+          fi
+
           sudo apt-get update && sudo apt-get install -y postgresql-client
           curl -L -o wishlist.sql https://raw.githubusercontent.com/RareSonal/StockWishlist/main/database/wishlist.sql
+
           TABLE_EXISTS=$(psql -h "$RDS_HOST" -U "$DB_USER" -d stockwishlist -tAc "SELECT to_regclass('public.wishlist');")
           if [ "$TABLE_EXISTS" = "wishlist" ]; then
             echo "✅ Wishlist table already exists. Skipping seed."
           else
-           echo "🌱 Seeding database..."
-           psql -h "$RDS_HOST" -U "$DB_USER" -d stockwishlist -f wishlist.sql
+            echo "🌱 Seeding database..."
+            psql -h "$RDS_HOST" -U "$DB_USER" -d stockwishlist -f wishlist.sql
           fi
 
       - name: 📦 Install Frontend Dependencies
