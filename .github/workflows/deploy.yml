@@ -120,10 +120,11 @@ jobs:
         working-directory: terraform
         run: |
           set -euo pipefail
-          HOST=$(terraform output -raw rds_endpoint)
-          HOST_CLEAN=$(echo "$HOST" | cut -d':' -f1 | tr -d '\r\n' | xargs)
-          echo "✅ Parsed RDS host: $HOST_CLEAN"
-          echo "rds_endpoint=$HOST_CLEAN" >> "$GITHUB_OUTPUT"
+          echo "Running terraform output..."
+          terraform_output=$(terraform output -raw rds_endpoint)
+          rds_host=$(echo "$terraform_output" | cut -d':' -f1 | xargs)
+          echo "✅ Parsed RDS host: $rds_host"
+          echo "rds_endpoint=$rds_host" >> "$GITHUB_OUTPUT"
 
       - name: 🌱 Seed PostgreSQL Database (Idempotent)
         env:
