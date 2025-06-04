@@ -126,28 +126,27 @@ jobs:
         run: |
           set -euo pipefail
           echo "Running terraform output..."
-          terraform output
           RDS_HOST=$(terraform output -raw rds_endpoint)
-          echo $RDS_HOST
-          
+          echo "rds_host=$RDS_HOST" >> $GITHUB_OUTPUT
+
       - name: 🌱 Seed PostgreSQL Database (Idempotent)
         env:
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_USER: ${{ secrets.DB_USERNAME }}
-          RDS_HOSTNAME: ${{ steps.get_rds_host.outputs.RDS_HOST }}
+          RDS_HOSTNAME: ${{ steps.get_rds_host.outputs.rds_host }}
         run: |
           set -euo pipefail
           sudo apt-get update && sudo apt-get install -y postgresql-client
           curl -L -o wishlist.sql https://raw.githubusercontent.com/RareSonal/StockWishlist/main/database/wishlist.sql
 
           TABLE_EXISTS=$(psql -h $RDS_HOSTNAME -U $DB_USER -d stockwishlist -tAc "SELECT to_regclass('public.wishlist');")
-          if [ $TABLE_EXISTS = "wishlist" ]; then
+          if [ "$TABLE_EXISTS" = "wishlist" ]; then
             echo "✅ Wishlist table already exists. Skipping seed."
           else
             echo "🌱 Seeding database..."
             psql -h $RDS_HOSTNAME -U $DB_USER -d stockwishlist -f wishlist.sql
           fi
-          
+
       - name: 📦 Install Frontend Dependencies
         working-directory: frontend
         run: npm install
