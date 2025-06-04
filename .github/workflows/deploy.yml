@@ -130,19 +130,18 @@ jobs:
           set -euo pipefail
 
           echo "🔎 Fetching Terraform outputs..."
-          echo "📝 Full output:"
-          terraform output
+          ./terraform-bin output
 
           echo "🧪 Fetching RDS endpoint from output..."
-          RDS_HOST=$(terraform output -raw rds_endpoint || echo "")
-          if [[ -z "$RDS_HOST" ]]; then
-            echo "❌ Error: rds_endpoint output is empty or not found."
+          RDS_HOST=$(./terraform-bin output -raw rds_endpoint || echo "")
+          echo "📡 RDS_HOST resolved to: $RDS_HOST"
+
+          if [[ "$RDS_HOST" != *rds.amazonaws.com ]]; then
+            echo "❌ RDS_HOST appears invalid: $RDS_HOST"
             exit 1
           fi
 
-          echo "📡 RDS_HOST resolved to: $RDS_HOST"
           echo "🔐 DB_USER: $DB_USER"
-
           echo "🌍 Verifying DNS resolution..."
           if ! nslookup "$RDS_HOST" > /dev/null 2>&1; then
             echo "❌ Could not resolve DNS for $RDS_HOST"
