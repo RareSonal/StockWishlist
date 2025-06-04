@@ -128,37 +128,24 @@ jobs:
           echo "Running terraform output..."
           terraform output
           RDS_HOST=$(terraform output -raw rds_endpoint)
-          echo "Raw RDS_HOST from terraform: $RDS_HOST"
-          RDS_HOST_CLEAN=$(echo "$RDS_HOST" | cut -d':' -f1 | tr -d '\r\n' | xargs)
-          echo "✅ Parsed RDS host: $RDS_HOST_CLEAN"
-          echo rds_endpoint=$RDS_HOST_CLEAN >> $GITHUB_OUTPUT
-
-      - name: 🧪 Log Parsed RDS Host
-        run: echo "Parsed from Terraform output = ${{ steps.get_rds_host.outputs.rds_endpoint }}"
-
+          echo $RDS_HOST
+          
       - name: 🌱 Seed PostgreSQL Database (Idempotent)
         env:
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_USER: ${{ secrets.DB_USERNAME }}
-          RDS_HOST: ${{ steps.get_rds_host.outputs.rds_endpoint }}
+          RDS_HOSTNAME: ${{ steps.get_rds_host.outputs.RDS_HOST }}
         run: |
           set -euo pipefail
-          echo "Using RDS_HOST=$RDS_HOST"
-
-          if [[ -z "$RDS_HOST" || "$RDS_HOST" == *"terraform"* ]]; then
-            echo "❌ Invalid RDS_HOST value: $RDS_HOST"
-            exit 1
-          fi
-
           sudo apt-get update && sudo apt-get install -y postgresql-client
           curl -L -o wishlist.sql https://raw.githubusercontent.com/RareSonal/StockWishlist/main/database/wishlist.sql
 
-          TABLE_EXISTS=$(psql -h "$RDS_HOST" -U "$DB_USER" -d stockwishlist -tAc "SELECT to_regclass('public.wishlist');")
-          if [ "$TABLE_EXISTS" = "wishlist" ]; then
+          TABLE_EXISTS=$(psql -h $RDS_HOSTNAME -U $DB_USER -d stockwishlist -tAc "SELECT to_regclass('public.wishlist');")
+          if [ $TABLE_EXISTS = "wishlist" ]; then
             echo "✅ Wishlist table already exists. Skipping seed."
           else
             echo "🌱 Seeding database..."
-            psql -h "$RDS_HOST" -U "$DB_USER" -d stockwishlist -f wishlist.sql
+            psql -h $RDS_HOSTNAME -U $DB_USER -d stockwishlist -f wishlist.sql
           fi
           
       - name: 📦 Install Frontend Dependencies
