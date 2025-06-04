@@ -120,7 +120,7 @@ jobs:
           which terraform
           terraform -version
 
-      - name: 🌱 Seed PostgreSQL Database (Wait up to 10 mins)
+      - name: 🌱 Seed PostgreSQL Database (Wait up to 5 mins)
         if: env.NO_CHANGES == 'false'
         env:
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}
@@ -129,12 +129,25 @@ jobs:
         run: |
           set -euo pipefail
 
-          echo "🔎 Fetching RDS endpoint from Terraform output..."
-          RDS_HOST=$(terraform output -raw rds_endpoint)
-          echo Fetched RDS endpoint $RDS_HOST
+          echo "🔎 Fetching Terraform outputs..."
+          echo "📝 Full output:"
+          terraform output
 
-          echo DB_USER $DB_USER
-          echo RDS_HOST $RDS_HOST
+          echo "🧪 Fetching RDS endpoint from output..."
+          RDS_HOST=$(terraform output -raw rds_endpoint || echo "")
+          if [[ -z "$RDS_HOST" ]]; then
+            echo "❌ Error: rds_endpoint output is empty or not found."
+            exit 1
+          fi
+
+          echo "📡 RDS_HOST resolved to: $RDS_HOST"
+          echo "🔐 DB_USER: $DB_USER"
+
+          echo "🌍 Verifying DNS resolution..."
+          if ! nslookup "$RDS_HOST" > /dev/null 2>&1; then
+            echo "❌ Could not resolve DNS for $RDS_HOST"
+            exit 1
+          fi
 
           echo "📦 Installing PostgreSQL client..."
           sudo apt-get update && sudo apt-get install -y postgresql-client
