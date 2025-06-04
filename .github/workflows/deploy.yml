@@ -120,7 +120,8 @@ jobs:
           which terraform
           terraform -version
 
-      - name: 🌱 Seed PostgreSQL Database (Idempotent)
+      - name: 🌱 Seed PostgreSQL Database (Wait up to 10 mins)
+        if: env.NO_CHANGES == 'false'
         env:
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_USER: ${{ secrets.DB_USERNAME }}
@@ -140,18 +141,18 @@ jobs:
           echo "🌐 Downloading wishlist.sql seed file..."
           curl -L -o wishlist.sql https://raw.githubusercontent.com/RareSonal/StockWishlist/main/database/wishlist.sql
 
-          echo "⏳ Waiting for DB to become available..."
-          for i in {1..5}; do
-          if psql -h "$RDS_HOST" -U "$DB_USER" -d stockwishlist -c '\q' 2>/dev/null; then
-            echo "✅ Connected to DB on attempt $i"
-          break
-          fi
-          echo "⚠️ Attempt $i: DB not ready yet. Retrying in 10s..."
-          sleep 10
-          if [ "$i" -eq 5 ]; then
-              echo "❌ Database never became available after 5 attempts."
-          exit 1
-          fi
+          echo "⏳ Waiting for DB to become available (max 10 minutes)..."
+          for i in {1..60}; do
+            if psql -h "$RDS_HOST" -U "$DB_USER" -d stockwishlist -c '\q' 2>/dev/null; then
+              echo "✅ Connected to DB on attempt $i"
+              break
+            fi
+            echo "⚠️ Attempt $i: DB not ready yet. Retrying in 10s..."
+            sleep 10
+            if [ "$i" -eq 60 ]; then
+              echo "❌ Database never became available after 10 minutes (60 attempts)."
+              exit 1
+            fi
           done
 
           echo "🔍 Checking if 'wishlist' table already exists..."
