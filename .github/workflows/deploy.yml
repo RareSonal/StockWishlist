@@ -129,7 +129,7 @@ jobs:
           RDS_HOST=$(terraform output -raw rds_endpoint)
           RDS_HOST_CLEAN=$(echo "$RDS_HOST" | cut -d':' -f1 | tr -d '\r\n' | xargs)
           echo "✅ Parsed RDS host: $RDS_HOST_CLEAN"
-          echo "rds_endpoint=$RDS_HOST_CLEAN" >> "$GITHUB_OUTPUT"
+          echo "rds_endpoint=$RDS_HOST_CLEAN" >> $GITHUB_OUTPUT
 
       - name: 🧪 Log Parsed RDS Host
         run: echo "Parsed from Terraform output = ${{ steps.get_rds_host.outputs.rds_endpoint }}"
