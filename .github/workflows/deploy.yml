@@ -125,25 +125,16 @@ jobs:
         env:
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_USER: ${{ secrets.DB_USERNAME }}
+          RDS_HOST: ${{ secrets.RDS_ENDPOINT }}
         working-directory: terraform
         run: |
           set -euo pipefail
 
-          echo "🔎 Fetching Terraform outputs..."
-          ./terraform-bin output
-
-          echo "🧪 Fetching RDS endpoint from output..."
-          RDS_HOST=$(./terraform-bin output -raw rds_endpoint || echo "")
           echo "📡 RDS_HOST resolved to: $RDS_HOST"
-
-          if [[ "$RDS_HOST" != *rds.amazonaws.com ]]; then
-            echo "❌ RDS_HOST appears invalid: $RDS_HOST"
-            exit 1
-          fi
-
           echo "🔐 DB_USER: $DB_USER"
+
           echo "🌍 Verifying DNS resolution..."
-          if ! nslookup "$RDS_HOST" > /dev/null 2>&1; then
+          if ! getent hosts "$RDS_HOST" > /dev/null; then
             echo "❌ Could not resolve DNS for $RDS_HOST"
             exit 1
           fi
