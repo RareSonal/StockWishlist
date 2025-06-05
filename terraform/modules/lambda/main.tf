@@ -1,4 +1,7 @@
+# ─────────────────────────────────────────────
 # IAM Role & Policies
+# ─────────────────────────────────────────────
+
 resource "aws_iam_role" "lambda_exec" {
   name = "lambda-exec-role"
   assume_role_policy = jsonencode({
@@ -63,28 +66,42 @@ resource "aws_iam_role_policy_attachment" "lambda_cognito_policy_attachment" {
   policy_arn = aws_iam_policy.lambda_cognito_policy.arn
 }
 
+# ─────────────────────────────────────────────
 # Lambda Layer
+# ─────────────────────────────────────────────
+
 resource "aws_lambda_layer_version" "python_deps" {
   filename            = "${path.module}/build/python-deps-layer.zip"
   layer_name          = "python-deps-layer"
   compatible_runtimes = ["python3.12"]
 }
 
-# Archive Flask Backend
+# ─────────────────────────────────────────────
+# Lambda Archive Files
+# ─────────────────────────────────────────────
+
 data "archive_file" "flask_backend" {
   type        = "zip"
   source_dir  = "${path.module}/../../../backend/lambda_package"
   output_path = "${path.module}/build/function-code.zip"
 }
 
-# Archive User Migration Lambda
 data "archive_file" "user_migration" {
   type        = "zip"
   source_dir  = "${path.module}/../../../backend/user_migration"
   output_path = "${path.module}/build/user-migration.zip"
 }
 
-# Lambda Function: Flask Backend
+data "archive_file" "seed_db_lambda" {
+  type        = "zip"
+  source_dir  = "${path.module}/../../../backend/seed_db_lambda"
+  output_path = "${path.module}/build/seed-db-lambda.zip"
+}
+
+# ─────────────────────────────────────────────
+# Lambda Functions
+# ─────────────────────────────────────────────
+
 resource "aws_lambda_function" "flask_backend" {
   function_name = "flask-backend"
   role          = aws_iam_role.lambda_exec.arn
@@ -112,7 +129,6 @@ resource "aws_lambda_function" "flask_backend" {
   }
 }
 
-# Lambda Function: User Migration
 resource "aws_lambda_function" "user_migration" {
   function_name = "user-migration-lambda"
   role          = aws_iam_role.lambda_exec.arn
@@ -121,6 +137,32 @@ resource "aws_lambda_function" "user_migration" {
   filename      = data.archive_file.user_migration.output_path
   source_code_hash = data.archive_file.user_migration.output_base64sha256
   timeout       = 30
+  memory_size   = 512
+  layers        = [aws_lambda_layer_version.python_deps.arn]
+
+  vpc_config {
+    subnet_ids         = var.subnet_ids
+    security_group_ids = [var.lambda_sg_id]
+  }
+
+  environment {
+    variables = {
+      DB_HOST     = var.db_host
+      DB_USER     = var.db_username
+      DB_PASSWORD = var.db_password
+      DB_NAME     = "stockwishlist"
+    }
+  }
+}
+
+resource "aws_lambda_function" "seed_db_lambda" {
+  function_name = "seed-db-lambda"
+  role          = aws_iam_role.lambda_exec.arn
+  handler       = "main.handler"
+  runtime       = "python3.12"
+  filename      = data.archive_file.seed_db_lambda.output_path
+  source_code_hash = data.archive_file.seed_db_lambda.output_base64sha256
+  timeout       = 60
   memory_size   = 512
   layers        = [aws_lambda_layer_version.python_deps.arn]
 
