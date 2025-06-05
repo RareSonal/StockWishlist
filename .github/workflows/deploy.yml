@@ -1,6 +1,6 @@
 name: Build Backend, Deploy Terraform, Seed DB, Build Frontend
 
-on:
+# on:
   # push:
 
 permissions:
