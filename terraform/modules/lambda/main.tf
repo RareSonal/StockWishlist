@@ -158,7 +158,7 @@ resource "aws_lambda_function" "user_migration" {
 resource "aws_lambda_function" "seed_db_lambda" {
   function_name = "seed-db-lambda"
   role          = aws_iam_role.lambda_exec.arn
-  handler       = "main.handler"
+  handler       = "seed_db.handler"
   runtime       = "python3.12"
   filename      = data.archive_file.seed_db_lambda.output_path
   source_code_hash = data.archive_file.seed_db_lambda.output_base64sha256
