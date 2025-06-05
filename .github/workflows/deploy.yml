@@ -124,7 +124,7 @@ jobs:
         if: env.NO_CHANGES == 'false'
         env:
           AWS_REGION: us-east-1
-          LAMBDA_FUNCTION_NAME: seed_db_lambda  
+          LAMBDA_FUNCTION_NAME: seed-db-lambda  
         run: |
           echo "Invoking seed-db-lambda function to seed the database..."
 
