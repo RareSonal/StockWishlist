@@ -17,3 +17,13 @@ output "user_migration_lambda_name" {
   description = "Name of the user migration Lambda function"
   value       = aws_lambda_function.user_migration.function_name
 }
+
+output "seed_db_lambda_arn" {
+  description = "ARN for the seed DB Lambda function"
+  value       = aws_lambda_function.seed_db_lambda.arn
+}
+
+output "seed_db_lambda_name" {
+  description = "Name of the seed DB Lambda function"
+  value       = aws_lambda_function.seed_db_lambda.function_name
+}
