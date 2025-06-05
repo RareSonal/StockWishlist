@@ -143,21 +143,7 @@ jobs:
 
           echo "Lambda invoke response:"
           cat response.json
-
-          # Optionally, check if seeding was successful from response.json here
-          # For simplicity, assuming success if we reach this point
-
-          echo "Deleting seed-db-lambda function..."
-          aws lambda delete-function \
-            --function-name "$LAMBDA_FUNCTION_NAME" \
-            --region "$AWS_REGION"
-
-          if [ $? -eq 0 ]; then
-            echo "✅ seed-db-lambda function deleted successfully."
-          else
-            echo "⚠️ Failed to delete seed-db-lambda function."
-          fi
-
+          
       - name: 📦 Install Frontend Dependencies
         working-directory: frontend
         run: npm install
