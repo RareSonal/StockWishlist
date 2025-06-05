@@ -1,7 +1,7 @@
 name: Build Backend, Deploy Terraform, Seed DB, Build Frontend
 
 on:
-  push:
+  # push:
 
 permissions:
   id-token: write
