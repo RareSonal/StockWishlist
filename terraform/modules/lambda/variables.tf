@@ -28,3 +28,16 @@ variable "region" {
   type        = string
   default     = "us-east-1"
 }
+
+# Optional enhancements
+variable "db_name" {
+  description = "Name of the database"
+  type        = string
+  default     = "stockwishlist"
+}
+
+variable "db_port" {
+  description = "Port for connecting to the database"
+  type        = string
+  default     = "5432"
+}
