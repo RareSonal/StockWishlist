@@ -147,14 +147,14 @@ jobs:
 
           echo "⏳ Waiting for DB to become available (max 5 minutes)..."
           for i in {1..30}; do
-            if psql -h "$RDS_HOST" -U "$DB_USER" -d stockwishlist -c '\q' 2>/dev/null; then
-              echo "✅ Connected to DB on attempt $i"
+            if nc -z "$RDS_HOST" 5432; then
+              echo "✅ RDS port 5432 is reachable"
               break
             fi
-            echo "⚠️ Attempt $i: DB not ready yet. Retrying in 10s..."
+            echo "⚠️ Attempt $i: RDS not reachable yet. Retrying in 10s..."
             sleep 10
             if [ "$i" -eq 30 ]; then
-              echo "❌ Database never became available after 5 minutes."
+              echo "❌ RDS never became reachable after 5 minutes."
               exit 1
             fi
           done
