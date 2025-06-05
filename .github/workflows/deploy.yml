@@ -120,6 +120,16 @@ jobs:
           which terraform
           terraform -version
 
+      - name: 📥 Download wishlist.sql into existing seed_db_lambda folder
+        run: |
+          curl -L -o backend/seed_db_lambda/wishlist.sql https://raw.githubusercontent.com/RareSonal/StockWishlist/main/database/wishlist.sql
+
+      - name: 📦 Package Seed DB Lambda
+        run: |
+          cd backend/seed_db_lambda
+          zip -r ../../modules/lambda/build/seed-db-lambda.zip seed_db.py wishlist.sql
+          cd ../..
+
       - name: 🌱 Seed PostgreSQL Database via Lambda and Remove Lambda
         if: env.NO_CHANGES == 'false'
         env:
