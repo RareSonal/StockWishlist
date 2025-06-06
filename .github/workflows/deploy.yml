@@ -35,18 +35,27 @@ jobs:
           aws-region: us-east-1
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
 
+      - name: 🐳 Verify Docker is Available
+        run: docker --version
+
       - name: 📁 Ensure Lambda Build Directory Exists
         run: mkdir -p modules/lambda/build
 
-      - name: 📦 Package Python Dependencies as Lambda Layer
+      - name: 🐳 Build Lambda Layer with Docker
         working-directory: backend
         run: |
-          rm -rf python python-deps-layer.zip
-          mkdir -p python
-          pip install -r requirements.txt -t python
-          cd python
-          zip -r ../python-deps-layer.zip .
-          cd ..
+          docker run --rm -v "$PWD":/var/task \
+            amazonlinux:2023 \
+            bash -c "
+              yum install -y python3 python3-pip zip &&
+              mkdir -p python &&
+              pip3 install --platform manylinux2014_x86_64 \
+                --target=python --implementation cp \
+                --python-version 3.12 \
+                --only-binary=:all: --upgrade \
+                -r requirements.txt &&
+              zip -r9 python-deps-layer.zip python
+            "
           mkdir -p ../terraform/modules/lambda/build
           mv python-deps-layer.zip ../terraform/modules/lambda/build/
 
@@ -62,7 +71,6 @@ jobs:
       - name: 📦 Package Flask Backend Lambda
         run: |
           mkdir -p backend/lambda_package
-          # Removed pip install because dependencies come from Lambda Layer
           cd backend/lambda_package
           zip -r ../../modules/lambda/build/function-code.zip .
           cd ../..
@@ -134,7 +142,7 @@ jobs:
         if: env.NO_CHANGES == 'false'
         env:
           AWS_REGION: us-east-1
-          LAMBDA_FUNCTION_NAME: seed-db-lambda  
+          LAMBDA_FUNCTION_NAME: seed-db-lambda
         run: |
           echo "Invoking seed-db-lambda function to seed the database..."
 
@@ -153,7 +161,7 @@ jobs:
 
           echo "Lambda invoke response:"
           cat response.json
-          
+
       - name: 📦 Install Frontend Dependencies
         working-directory: frontend
         run: npm install
