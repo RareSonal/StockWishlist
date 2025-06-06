@@ -1,7 +1,7 @@
 name: Build Backend, Deploy Terraform, Seed DB, Build Frontend
 
 on:
-  workflow_dispatch:
+  push:
 
 permissions:
   id-token: write
@@ -130,8 +130,9 @@ jobs:
           which terraform
           terraform -version
 
-      - name: 📥 Download wishlist.sql into existing seed_db_lambda folder
+      - name: 📥 Always Download Latest wishlist.sql
         run: |
+          echo "Downloading latest wishlist.sql..."
           curl -L -o backend/seed_db_lambda/wishlist.sql https://raw.githubusercontent.com/RareSonal/StockWishlist/main/database/wishlist.sql
 
       - name: 📦 Package Seed DB Lambda
