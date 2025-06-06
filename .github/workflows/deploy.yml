@@ -70,6 +70,21 @@ jobs:
             echo "✅ Lambda layer zip exists."
           fi
 
+      - name: 📥 Download wishlist.sql only if missing
+        run: |
+          if [ ! -f backend/seed_db_lambda/wishlist.sql ]; then
+            echo "Downloading wishlist.sql..."
+            curl -L -o backend/seed_db_lambda/wishlist.sql https://raw.githubusercontent.com/RareSonal/StockWishlist/main/database/wishlist.sql
+          else
+            echo "wishlist.sql already exists. Skipping download."
+          fi
+
+      - name: 📦 Package Seed DB Lambda (Include wishlist.sql)
+        run: |
+          cd backend/seed_db_lambda
+          zip -r ../../modules/lambda/build/seed-db-lambda.zip seed_db.py wishlist.sql
+          cd ../..
+
       - name: 📦 Package Flask Backend Lambda
         run: |
           mkdir -p backend/lambda_package
@@ -130,17 +145,6 @@ jobs:
           which terraform
           terraform -version
 
-      - name: 📥 Always Download Latest wishlist.sql
-        run: |
-          echo "Downloading latest wishlist.sql..."
-          curl -L -o backend/seed_db_lambda/wishlist.sql https://raw.githubusercontent.com/RareSonal/StockWishlist/main/database/wishlist.sql
-
-      - name: 📦 Package Seed DB Lambda
-        run: |
-          cd backend/seed_db_lambda
-          zip -r ../../modules/lambda/build/seed-db-lambda.zip seed_db.py wishlist.sql
-          cd ../..
-
       - name: ⏳ Wait for RDS to Become Available
         env:
           AWS_REGION: us-east-1
@@ -170,8 +174,7 @@ jobs:
             echo "❌ RDS did not become available in time."
             exit 1
           fi
-            
-      
+
       - name: 🌱 Seed PostgreSQL Database via Lambda and Remove Lambda
         env:
           AWS_REGION: us-east-1
