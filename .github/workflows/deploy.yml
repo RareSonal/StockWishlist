@@ -51,11 +51,15 @@ jobs:
             cd /var/task &&
             mkdir -p python &&
             pip3 install -r requirements.txt -t python &&
+            echo '✅ Installed packages:' &&
+            ls python/ &&
             zip -r9 python-deps-layer.zip python
           "
           mkdir -p ../terraform/modules/lambda/build
           mv python-deps-layer.zip ../terraform/modules/lambda/build/
 
+      - name: 🕵️ Verify Lambda Layer Contains psycopg2
+        run: unzip -l terraform/modules/lambda/build/python-deps-layer.zip | grep psycopg2
 
       - name: ✅ Verify Lambda Layer ZIP exists
         run: |
