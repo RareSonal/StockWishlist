@@ -47,14 +47,15 @@ jobs:
           docker run --rm -v "$PWD":/var/task \
           amazonlinux:2023 \
           bash -c "
-          yum install -y python3 python3-pip python3-setuptools zip &&
-          cd /var/task &&
-          mkdir -p python &&
-          pip3 install -r requirements.txt -t python &&
-          zip -r9 python-deps-layer.zip python
+            yum install -y python3 python3-pip python3-setuptools zip &&
+            cd /var/task &&
+            mkdir -p python &&
+            pip3 install -r requirements.txt -t python &&
+            zip -r9 python-deps-layer.zip python
           "
-            mkdir -p ../terraform/modules/lambda/build
-            mv python-deps-layer.zip ../terraform/modules/lambda/build/
+          mkdir -p ../terraform/modules/lambda/build
+          mv python-deps-layer.zip ../terraform/modules/lambda/build/
+
 
       - name: ✅ Verify Lambda Layer ZIP exists
         run: |
@@ -140,7 +141,7 @@ jobs:
         env:
           AWS_REGION: us-east-1
           DB_IDENTIFIER: stockwishlist-postgres
-          run: |
+        run: |
             echo "Waiting for RDS instance '$DB_IDENTIFIER' to become available..."
 
             for i in {1..30}; do
