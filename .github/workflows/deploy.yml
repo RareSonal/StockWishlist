@@ -51,8 +51,8 @@ jobs:
           pip3 install --platform manylinux2014_x86_64 \
             --target=python --implementation cp \
             --python-version 3.12 \
-            --only-binary=:all: --upgrade \
-            -r requirements.txt &&
+            --upgrade \
+            -r requirements.txt
           zip -r9 python-deps-layer.zip python
           "
             mkdir -p ../terraform/modules/lambda/build
