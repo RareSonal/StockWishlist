@@ -41,12 +41,10 @@ jobs:
       - name: 📁 Ensure Lambda Build Directory Exists
         run: mkdir -p modules/lambda/build
 
-      - name: 🐳 Build Lambda Layer with Docker
+      - name: 🐳 Build Lambda Layer with Docker 
         working-directory: backend
         run: |
-          docker run --rm -v "$PWD":/var/task \
-          amazonlinux:2023 \
-          bash -c "
+          docker run --rm -v "$PWD":/var/task amazonlinux:2023 bash -c "
           yum install -y python3 python3-pip zip &&
           cd /var/task &&
           mkdir -p python &&
@@ -54,11 +52,11 @@ jobs:
             --target=python --implementation cp \
             --python-version 3.12 \
             --only-binary=:all: --upgrade \
-            -r backend/requirements.txt &&
+            -r requirements.txt &&
           zip -r9 python-deps-layer.zip python
           "
-           mkdir -p ../terraform/modules/lambda/build
-           mv python-deps-layer.zip ../terraform/modules/lambda/build/
+            mkdir -p ../terraform/modules/lambda/build
+            mv python-deps-layer.zip ../terraform/modules/lambda/build/
 
       - name: ✅ Verify Lambda Layer ZIP exists
         run: |
