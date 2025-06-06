@@ -143,21 +143,41 @@ jobs:
         run: |
           echo "Invoking seed-db-lambda function to seed the database..."
 
-          RESPONSE=$(aws lambda invoke \
-            --function-name "$LAMBDA_FUNCTION_NAME" \
-            --region "$AWS_REGION" \
-            --payload '{}' \
-            response.json)
+          aws lambda invoke \
+          --function-name "$LAMBDA_FUNCTION_NAME" \
+          --region "$AWS_REGION" \
+          --payload '{}' \
+          response.json
 
-          STATUS=$?
-          if [ $STATUS -ne 0 ]; then
-            echo "❌ Failed to invoke Lambda function."
-            cat response.json
+          echo "Lambda raw response:"
+          cat response.json
+
+          if grep -q '❌' response.json; then
+            echo "❌ Lambda function returned failure response."
             exit 1
           fi
 
-          echo "Lambda invoke response:"
-          cat response.json
+          echo "✅ Lambda executed successfully."
+
+      - name: 📜 Fetch Lambda Logs for Debugging
+        if: env.NO_CHANGES == 'false'
+        run: |
+          LOG_GROUP_NAME="/aws/lambda/seed-db-lambda"
+          LOG_STREAM=$(aws logs describe-log-streams \
+          --log-group-name "$LOG_GROUP_NAME" \
+          --order-by LastEventTime \
+          --descending \
+          --limit 1 \
+          --query 'logStreams[0].logStreamName' \
+          --output text)
+
+          echo "Fetching logs for stream: $LOG_STREAM"
+          aws logs get-log-events \
+          --log-group-name "$LOG_GROUP_NAME" \
+          --log-stream-name "$LOG_STREAM" \
+          --limit 50 \
+          --query 'events[*].message' \
+          --output text
 
       - name: 📦 Install Frontend Dependencies
         working-directory: frontend
