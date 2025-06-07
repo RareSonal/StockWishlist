@@ -12,8 +12,10 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      DB_HOST: ${{ secrets.RDS_ENDPOINT }}
       DB_USER: ${{ secrets.DB_USERNAME }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_NAME: ${{ secrets.DB_NAME }}
 
     steps:
       - name: 🧾 Checkout Code
@@ -219,6 +221,32 @@ jobs:
           --limit 50 \
           --query 'events[*].message' \
           --output text
+
+      - name: 🕵️ Inspect Seeded Database Tables and Sample Data
+        env:
+          PGHOST: ${{ secrets.DB_HOST }}
+          PGUSER: ${{ secrets.DB_USERNAME }}
+          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
+          PGDATABASE: ${{ secrets.DB_NAME }}
+        run: |
+          echo "Installing PostgreSQL client..."
+          sudo apt-get update && sudo apt-get install -y postgresql-client
+
+          echo "🔍 Verifying database schema and sample data..."
+
+          echo "📂 Tables available:"
+          psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -c "\dt"
+
+          echo "📋 stocks table:"
+          psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -c "SELECT * FROM stocks ORDER BY id LIMIT 5;"
+
+          echo "👤 users table:"
+          psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -c "SELECT * FROM users ORDER BY id LIMIT 5;"
+
+          echo "💖 wishlist table:"
+          psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -c "SELECT * FROM wishlist ORDER BY id LIMIT 5;"
+
+          echo "✅ Database verification complete."
 
       - name: 📦 Install Frontend Dependencies
         working-directory: frontend
