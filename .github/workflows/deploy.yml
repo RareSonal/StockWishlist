@@ -1,7 +1,7 @@
 name: Build Backend, Deploy Terraform, Seed DB, Build Frontend
 
 on:
-  workflow_dispatch:
+  push:
 
 permissions:
   id-token: write
@@ -92,6 +92,9 @@ jobs:
           else
             echo "✅ Lambda layer zip exists."
           fi
+
+      - name: 🧹 Clean old wishlist.sql before downloading
+        run: rm -f backend/seed_db_lambda/wishlist.sql
 
       - name: 📥 Download wishlist.sql only if missing
         run: |
