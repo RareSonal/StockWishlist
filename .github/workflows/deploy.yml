@@ -182,12 +182,14 @@ jobs:
           AWS_REGION: us-east-1
           LAMBDA_FUNCTION_NAME: seed-db-lambda
         run: |
+          echo '{"action":"seed"}' > payload.json
+
           echo "Invoking seed-db-lambda function to seed the database..."
 
           aws lambda invoke \
           --function-name "$LAMBDA_FUNCTION_NAME" \
           --region "$AWS_REGION" \
-          --payload '{"action":"seed"}' \
+          --payload fileb://payload.json \
           response.json
 
           echo "Lambda raw response:"
@@ -208,12 +210,14 @@ jobs:
           AWS_REGION: us-east-1
           LAMBDA_FUNCTION_NAME: seed-db-lambda
         run: |
+          echo '{"action":"verify"}' > verify_payload.json
+
           echo "Invoking seed-db-lambda with verify action to fetch table info and sample data..."
 
           aws lambda invoke \
           --function-name "$LAMBDA_FUNCTION_NAME" \
           --region "$AWS_REGION" \
-          --payload '{"action":"verify"}' \
+          --payload fileb://verify_payload.json \
           verify_response.json
 
           echo "Raw verify response:"
@@ -222,7 +226,6 @@ jobs:
           echo "Parsed results:"
           cat verify_response.json | jq '.message, .tables, .sample_data'
 
-          # Exit with failure if error message found
           if cat verify_response.json | jq -e '.message | test("❌")' > /dev/null; then
             echo "❌ Verification failed."
             exit 1
