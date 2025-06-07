@@ -1,7 +1,7 @@
 name: Build Backend, Deploy Terraform, Seed DB, Build Frontend
 
 on:
-  push:
+  workflow_dispatch:
 
 permissions:
   id-token: write
@@ -78,17 +78,10 @@ jobs:
             echo "✅ Lambda layer zip exists."
           fi
 
-      - name: 🧹 Clean old wishlist.sql before downloading
-        run: rm -f backend/seed_db_lambda/wishlist.sql
-
-      - name: 📥 Download wishlist.sql only if missing
+      - name: 📥 Download latest wishlist.sql (always overwrite)
         run: |
-          if [ ! -f backend/seed_db_lambda/wishlist.sql ]; then
-            echo "Downloading wishlist.sql..."
-            curl -L -o backend/seed_db_lambda/wishlist.sql https://raw.githubusercontent.com/RareSonal/StockWishlist/main/database/wishlist.sql
-          else
-            echo "wishlist.sql already exists. Skipping download."
-          fi
+          echo "🔄 Downloading latest wishlist.sql..."
+          curl -L -o backend/seed_db_lambda/wishlist.sql https://raw.githubusercontent.com/RareSonal/StockWishlist/main/database/wishlist.sql
 
       - name: 📦 Package Seed DB Lambda (Include wishlist.sql)
         run: |
