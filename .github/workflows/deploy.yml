@@ -49,35 +49,20 @@ jobs:
       - name: 🐳 Build Lambda Layer with Docker
         working-directory: backend
         run: |
-          rm -f ../terraform/modules/lambda/build/python-deps-layer.zip
-          docker run --rm -v "$PWD":/var/task \
-          amazonlinux:2023 \
-          bash -c "
-            yum install -y python3 python3-pip python3-setuptools zip &&
-            cd /var/task &&
-            mkdir -p python &&
-            pip3 install -r requirements.txt -t python &&
-            zip -r9 python-deps-layer.zip python
-          "
-          mkdir -p ../terraform/modules/lambda/build
-          mv python-deps-layer.zip ../terraform/modules/lambda/build/
-
-
-      - name: 🐳 Build Lambda Layer with Docker
-        working-directory: backend
-        run: |
-          rm -f ../terraform/modules/lambda/build/python-deps-layer.zip
-          docker run --rm -v "$PWD":/var/task \
-          amazonlinux:2023 \
-          bash -c "
-            yum install -y python3 python3-pip python3-setuptools zip &&
-            cd /var/task &&
-            mkdir -p python &&
-            pip3 install -r requirements.txt -t python &&
-            echo '✅ Installed packages:' &&
-            ls python/ &&
-            zip -r9 python-deps-layer.zip python
-          "
+         rm -f ../terraform/modules/lambda/build/python-deps-layer.zip
+         docker run --rm -v "$PWD":/var/task \
+           amazonlinux:2023 \
+           bash -c "
+             yum install -y python3.12 python3.12-pip python3.12-devel gcc postgresql-devel zip &&
+             alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1 &&
+             alternatives --install /usr/bin/pip3 pip3 /usr/bin/pip3.12 1 &&
+             cd /var/task &&
+             mkdir -p python &&
+             pip3 install -r requirements.txt -t python &&
+             echo '✅ Installed packages:' &&
+             ls python/ &&
+             zip -r9 python-deps-layer.zip python
+           "
           mkdir -p ../terraform/modules/lambda/build
           mv python-deps-layer.zip ../terraform/modules/lambda/build/
 
