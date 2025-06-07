@@ -74,6 +74,7 @@ resource "aws_lambda_layer_version" "python_deps" {
   filename            = "${path.module}/build/python-deps-layer.zip"
   layer_name          = "python-deps-layer"
   compatible_runtimes = ["python3.12"]
+  source_code_hash    = filebase64sha256("${path.module}/build/python-deps-layer.zip")
 }
 
 # ─────────────────────────────────────────────
