@@ -1,7 +1,7 @@
 name: Build Backend, Deploy Terraform, Seed DB, Build Frontend
 
 on:
-  workflow_dispatch:
+  push:
 
 permissions:
   id-token: write
@@ -187,7 +187,7 @@ jobs:
           aws lambda invoke \
           --function-name "$LAMBDA_FUNCTION_NAME" \
           --region "$AWS_REGION" \
-          --payload '{}' \
+          --payload '{"action":"seed"}' \
           response.json
 
           echo "Lambda raw response:"
@@ -203,55 +203,30 @@ jobs:
 
           echo "✅ Lambda executed successfully."
 
-      - name: 📜 Fetch Lambda Logs for Debugging
-        run: |
-          LOG_GROUP_NAME="/aws/lambda/seed-db-lambda"
-          LOG_STREAM=$(aws logs describe-log-streams \
-          --log-group-name "$LOG_GROUP_NAME" \
-          --order-by LastEventTime \
-          --descending \
-          --limit 1 \
-          --query 'logStreams[0].logStreamName' \
-          --output text)
-
-          echo "Fetching logs for stream: $LOG_STREAM"
-          aws logs get-log-events \
-          --log-group-name "$LOG_GROUP_NAME" \
-          --log-stream-name "$LOG_STREAM" \
-          --limit 50 \
-          --query 'events[*].message' \
-          --output text
-
-      - name: 🕵️ Inspect Seeded Database Tables and Sample Data
+      - name: 🕵️ Verify Database Tables and Sample Data via Lambda
         env:
-          PGHOST: ${{ secrets.RDS_ENDPOINT }}
-          PGUSER: ${{ secrets.DB_USERNAME }}
-          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
-          PGDATABASE: ${{ secrets.DB_NAME }}
+          AWS_REGION: us-east-1
+          LAMBDA_FUNCTION_NAME: seed-db-lambda
         run: |
-          set -e  
+          echo "Invoking seed-db-lambda with verify action to fetch table info and sample data..."
 
-          echo "📦 Installing PostgreSQL client..."
-          sudo apt-get update && sudo apt-get install -y postgresql-client
+          aws lambda invoke \
+          --function-name "$LAMBDA_FUNCTION_NAME" \
+          --region "$AWS_REGION" \
+          --payload '{"action":"verify"}' \
+          verify_response.json
 
-          echo "🔍 Verifying database schema and sample data..."
-          echo "🔧 PGHOST=$PGHOST"
-          echo "🔧 PGUSER=$PGUSER"
-          echo "🔧 PGDATABASE=$PGDATABASE"
+          echo "Raw verify response:"
+          cat verify_response.json
 
-          echo "📂 Tables available:"
-          psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -c "\dt" || { echo "❌ Failed to list tables"; exit 1; }
+          echo "Parsed results:"
+          cat verify_response.json | jq '.message, .tables, .sample_data'
 
-          echo "📋 stocks table:"
-          psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -c "SELECT * FROM stocks ORDER BY id LIMIT 5;" || echo "⚠️ Could not query stocks table."
-
-          echo "👤 users table:"
-          psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -c "SELECT * FROM users ORDER BY id LIMIT 5;" || echo "⚠️ Could not query users table."
-
-          echo "💖 wishlist table:"
-          psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -c "SELECT * FROM wishlist ORDER BY id LIMIT 5;" || echo "⚠️ Could not query wishlist table."
-
-          echo "✅ Database verification complete."
+          # Exit with failure if error message found
+          if cat verify_response.json | jq -e '.message | test("❌")' > /dev/null; then
+            echo "❌ Verification failed."
+            exit 1
+          fi
 
       - name: 📦 Install Frontend Dependencies
         working-directory: frontend
