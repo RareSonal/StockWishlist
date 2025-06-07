@@ -1,6 +1,6 @@
 Flask
 flask-cors
-psycopg2-binary
+psycopg2-binary==2.9.9
 PyJWT
 cryptography
 awsgi
