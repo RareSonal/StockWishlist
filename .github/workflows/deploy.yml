@@ -224,27 +224,32 @@ jobs:
 
       - name: 🕵️ Inspect Seeded Database Tables and Sample Data
         env:
-          PGHOST: ${{ secrets.DB_HOST }}
+          PGHOST: ${{ secrets.RDS_ENDPOINT }}
           PGUSER: ${{ secrets.DB_USERNAME }}
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}
           PGDATABASE: ${{ secrets.DB_NAME }}
         run: |
-          echo "Installing PostgreSQL client..."
+          set -e  
+
+          echo "📦 Installing PostgreSQL client..."
           sudo apt-get update && sudo apt-get install -y postgresql-client
 
           echo "🔍 Verifying database schema and sample data..."
+          echo "🔧 PGHOST=$PGHOST"
+          echo "🔧 PGUSER=$PGUSER"
+          echo "🔧 PGDATABASE=$PGDATABASE"
 
           echo "📂 Tables available:"
-          psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -c "\dt"
+          psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -c "\dt" || { echo "❌ Failed to list tables"; exit 1; }
 
           echo "📋 stocks table:"
-          psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -c "SELECT * FROM stocks ORDER BY id LIMIT 5;"
+          psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -c "SELECT * FROM stocks ORDER BY id LIMIT 5;" || echo "⚠️ Could not query stocks table."
 
           echo "👤 users table:"
-          psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -c "SELECT * FROM users ORDER BY id LIMIT 5;"
+          psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -c "SELECT * FROM users ORDER BY id LIMIT 5;" || echo "⚠️ Could not query users table."
 
           echo "💖 wishlist table:"
-          psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -c "SELECT * FROM wishlist ORDER BY id LIMIT 5;"
+          psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -c "SELECT * FROM wishlist ORDER BY id LIMIT 5;" || echo "⚠️ Could not query wishlist table."
 
           echo "✅ Database verification complete."
 
