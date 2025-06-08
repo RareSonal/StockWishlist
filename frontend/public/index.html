@@ -7,11 +7,8 @@
   <link rel="icon" href="<%= BASE_URL %>favicon.ico" />
   <title>Stock Wishlist</title>
 
-  <!-- Vuetify CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/vuetify@2.5.10/dist/vuetify.min.css" rel="stylesheet" />
-
-  <!-- AWS Amplify Library -->
-  <script src="https://cdn.jsdelivr.net/npm/aws-amplify@4.3.10/dist/aws-amplify.min.js"></script>
+  <!-- Vuetify CSS (Only if not imported via npm) -->
+  <!-- <link href="https://cdn.jsdelivr.net/npm/vuetify@2.5.10/dist/vuetify.min.css" rel="stylesheet" /> -->
 </head>
 <body>
   <noscript>
@@ -23,32 +20,10 @@
 
   <div id="app"></div>
 
-  <!-- Vue.js -->
-  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
-
-  <!-- Vuetify JS -->
+  <!-- Vue & Vuetify from CDN (only if NOT bundled via npm/yarn, usually not needed in production) -->
+  <!--
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vuetify@2.5.10/dist/vuetify.js"></script>
-
-  <!-- Custom App Bundle 
-  <script src="dist/js/app.js"></script> -->
-
-  <!-- AWS Amplify Configuration -->
-  <script>
-    // Configure AWS region and Cognito Identity Pool
-    AWS.config.region = 'us-east-1';
-    AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-      IdentityPoolId: 'us-east-1:EXAMPLE_POOL_ID',
-    });
-
-    // Configure Amplify Auth
-    Amplify.configure({
-      Auth: {
-        region: 'us-east-1',
-        userPoolId: 'us-east-1_EXAMPLE',
-        userPoolWebClientId: 'EXAMPLE_CLIENT_ID',
-        mandatorySignIn: true,
-      },
-    });
-  </script>
+  -->
 </body>
 </html>
