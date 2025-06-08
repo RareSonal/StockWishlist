@@ -2,7 +2,7 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import { Auth } from 'aws-amplify';
 import LoginForm from './components/LoginForm.vue';
-import Wishlist from './components/WishlistPage.vue';
+import WishlistPage from './components/WishlistPage.vue';
 
 Vue.use(Router);
 
