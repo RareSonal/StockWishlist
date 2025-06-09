@@ -148,13 +148,16 @@ resource "aws_lambda_function" "user_migration" {
 
   environment {
     variables = {
-      DB_HOST     = var.db_host
-      DB_USER     = var.db_username
-      DB_PASSWORD = var.db_password
-      DB_NAME     = "stockwishlist"
+      DB_HOST              = var.db_host
+      DB_USER              = var.db_username
+      DB_PASSWORD          = var.db_password
+      DB_NAME              = "stockwishlist"
+      COGNITO_REGION       = var.region
+      COGNITO_USER_POOL_ID = aws_cognito_user_pool.user_pool.id
     }
   }
 }
+
 
 resource "aws_lambda_function" "seed_db_lambda" {
   function_name = "seed-db-lambda"
