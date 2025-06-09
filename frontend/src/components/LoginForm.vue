@@ -14,7 +14,9 @@
         required
       ></v-text-field>
 
-      <v-btn color="primary" type="submit">Login</v-btn>
+      <v-btn color="primary" type="submit" :loading="loading">
+        Login
+      </v-btn>
 
       <v-alert
         v-if="successMessage"
@@ -40,8 +42,6 @@
 </template>
 
 <script>
-import { Auth } from 'aws-amplify';
-
 export default {
   name: "LoginForm",
   data() {
@@ -50,35 +50,59 @@ export default {
       password: "",
       successMessage: "",
       errorMessage: "",
+      loading: false
     };
   },
   methods: {
     async validateForm() {
       this.successMessage = "";
       this.errorMessage = "";
+      this.loading = true;
 
       if (!this.email || !this.password) {
         this.errorMessage = "Email and Password are required!";
+        this.loading = false;
         return;
       }
 
       try {
-        await Auth.signIn(this.email, this.password);
+        const response = await fetch("https://svy233k6zi.execute-api.us-east-1.amazonaws.com/prod/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            username: this.email,
+            password: this.password
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          this.errorMessage = data.error || "Login failed. Please try again.";
+          this.loading = false;
+          return;
+        }
+
         this.successMessage = "Login successful!";
+
+        // Store tokens (you can also store in Vuex if preferred)
+        localStorage.setItem("id_token", data.id_token);
+        localStorage.setItem("access_token", data.access_token);
+        if (data.refresh_token) {
+          localStorage.setItem("refresh_token", data.refresh_token);
+        }
+
+        // Navigate to wishlist
         this.$router.push("/wishlist");
       } catch (error) {
-        switch (error.code) {
-          case "UserNotConfirmedException":
-            this.errorMessage = "User not confirmed. Please check your email.";
-            break;
-          case "NotAuthorizedException":
-            this.errorMessage = "Incorrect email or password.";
-            break;
-          default:
-            this.errorMessage = "Login failed. Please try again.";
-        }
+        console.error("Login error:", error);
+        this.errorMessage = "An unexpected error occurred.";
+      } finally {
+        this.loading = false;
       }
-    },
-  },
+    }
+  }
 };
 </script>
