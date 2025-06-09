@@ -21,11 +21,6 @@ module.exports = defineConfig({
         chunks: 'all',
       },
     },
-    externals: process.env.NODE_ENV === 'production'
-      ? {
-          'aws-amplify': 'Amplify',
-        }
-      : {},
   },
 
   chainWebpack: config => {
