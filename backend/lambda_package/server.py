@@ -10,7 +10,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 from functools import wraps
 
-# Load environment variables and initialize logging
+# Load environment variables and configure logging
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
 
@@ -19,7 +19,7 @@ CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.INFO)
 
-# Environment config
+# Database configuration
 db_config = {
     'host': os.getenv('DB_HOST'),
     'dbname': os.getenv('DB_NAME'),
@@ -28,12 +28,28 @@ db_config = {
     'port': os.getenv('DB_PORT', 5432)
 }
 
+# Cognito config
 COGNITO_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
 COGNITO_REGION = os.getenv("COGNITO_REGION")
 COGNITO_APP_CLIENT_ID = os.getenv("COGNITO_APP_CLIENT_ID")
 JWKS_URL = f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_POOL_ID}/.well-known/jwks.json"
 
-# AWS Cognito Authentication
+# Add CORS headers to every response
+@app.after_request
+def apply_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS'
+    return response
+
+# Preflight response handler
+@app.route('/<path:path>', methods=['OPTIONS'])
+@app.route('/', methods=['OPTIONS'])
+def handle_options(path=None):
+    return '', 200
+
+# --- Helper Functions ---
+
 def authenticate_user(username, password):
     try:
         client = boto3.client('cognito-idp', region_name=COGNITO_REGION)
@@ -53,7 +69,6 @@ def authenticate_user(username, password):
         app.logger.error(f"Error during authentication: {e}")
         return None
 
-# JWKS and token handling
 def get_jwks():
     try:
         resp = requests.get(JWKS_URL, timeout=3)
@@ -87,16 +102,13 @@ def decode_token(token):
         app.logger.error(f"Token decode error: {e}")
         return None
 
-# Database connection
 def get_db_connection():
     try:
-        conn = psycopg2.connect(**db_config)
-        return conn
+        return psycopg2.connect(**db_config)
     except Exception as e:
         app.logger.error(f"Database connection error: {e}")
         raise
 
-# Helper: Get internal user ID by Cognito email
 def get_user_id_from_email(email):
     try:
         with get_db_connection() as conn:
@@ -105,18 +117,16 @@ def get_user_id_from_email(email):
                 result = cur.fetchone()
                 return result[0] if result else None
     except Exception as e:
-        app.logger.error(f"Error fetching user_id for email {email}: {e}")
+        app.logger.error(f"Error fetching user ID for email {email}: {e}")
         return None
 
-# Decorator for token-based route protection
 def login_required(f):
     @wraps(f)
-    def decorated_function(*args, **kwargs):
+    def wrapper(*args, **kwargs):
         auth_header = request.headers.get("Authorization", "")
         token = auth_header.replace("Bearer ", "")
         user = decode_token(token)
         if not user:
-            app.logger.warning("Unauthorized access attempt")
             return jsonify({"error": "Unauthorized"}), 401
 
         email = user.get("email")
@@ -126,7 +136,7 @@ def login_required(f):
 
         request.user_id = user_id
         return f(*args, **kwargs)
-    return decorated_function
+    return wrapper
 
 # --- Routes ---
 
@@ -159,8 +169,7 @@ def get_stocks():
                 cur.execute("SELECT * FROM Stocks WHERE quantity > 0")
                 rows = cur.fetchall()
                 colnames = [desc[0] for desc in cur.description]
-                stocks = [dict(zip(colnames, row)) for row in rows]
-                return jsonify(stocks)
+                return jsonify([dict(zip(colnames, row)) for row in rows])
     except Exception as e:
         app.logger.error(f"Error fetching stocks: {e}")
         return jsonify({'error': 'Error fetching stocks'}), 500
@@ -180,8 +189,7 @@ def get_wishlist():
                 """, (user_id,))
                 rows = cur.fetchall()
                 colnames = [desc[0] for desc in cur.description]
-                wishlist = [dict(zip(colnames, row)) for row in rows]
-                return jsonify(wishlist)
+                return jsonify([dict(zip(colnames, row)) for row in rows])
     except Exception as e:
         app.logger.error(f"Error fetching wishlist: {e}")
         return jsonify({'error': 'Error fetching wishlist'}), 500
@@ -190,8 +198,7 @@ def get_wishlist():
 @login_required
 def add_to_wishlist():
     user_id = request.user_id
-    data = request.get_json()
-    stock_id = data.get('stock_id')
+    stock_id = request.get_json().get('stock_id')
 
     try:
         with get_db_connection() as conn:
@@ -213,8 +220,7 @@ def add_to_wishlist():
 @login_required
 def remove_from_wishlist():
     user_id = request.user_id
-    data = request.get_json()
-    stock_id = data.get('stock_id')
+    stock_id = request.get_json().get('stock_id')
 
     try:
         with get_db_connection() as conn:
@@ -227,15 +233,15 @@ def remove_from_wishlist():
         app.logger.error(f"Error removing from wishlist: {e}")
         return jsonify({'error': 'Error removing from wishlist'}), 500
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def health_check():
     return jsonify({'message': 'Server is running'})
 
-# AWS Lambda entry point
+# Lambda entry point
 def handler(event, context):
     import awsgi
     return awsgi.response(app, event, context)
 
 if __name__ == '__main__':
     port = int(os.getenv("PORT", 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.
