@@ -42,12 +42,6 @@ def apply_cors_headers(response):
     response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS'
     return response
 
-# Preflight response handler
-@app.route('/<path:path>', methods=['OPTIONS'])
-@app.route('/', methods=['OPTIONS'])
-def handle_options(path=None):
-    return '', 200
-
 # --- Helper Functions ---
 
 def authenticate_user(username, password):
@@ -140,8 +134,11 @@ def login_required(f):
 
 # --- Routes ---
 
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['POST', 'OPTIONS'])
 def login():
+    if request.method == 'OPTIONS':
+        return '', 200  # Preflight response
+
     data = request.get_json()
     username = data.get("username")
     password = data.get("password")
@@ -244,4 +241,4 @@ def handler(event, context):
 
 if __name__ == '__main__':
     port = int(os.getenv("PORT", 5000))
-    app.run(host='0.0.
+    app.run(host='0.0.0.0', port=port)
