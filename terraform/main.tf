@@ -82,6 +82,37 @@ module "api_gateway" {
 }
 
 # ─────────────────────────────────────────────
+# CORS MODULES FOR EACH ENDPOINT
+# ─────────────────────────────────────────────
+
+module "cors_login" {
+  source       = "./modules/cors"
+  rest_api_id  = module.api_gateway.api_id
+  resource_id  = module.api_gateway.login_resource_id
+}
+
+module "cors_stocks" {
+  source       = "./modules/cors"
+  rest_api_id  = module.api_gateway.api_id
+  resource_id  = module.api_gateway.stocks_resource_id
+}
+
+module "cors_wishlist" {
+  source       = "./modules/cors"
+  rest_api_id  = module.api_gateway.api_id
+  resource_id  = module.api_gateway.wishlist_resource_id
+}
+
+# Optional: dummy resource to ensure CORS modules are fully applied before any dependent module
+resource "null_resource" "cors_ready" {
+  depends_on = [
+    module.cors_login,
+    module.cors_stocks,
+    module.cors_wishlist
+  ]
+}
+
+# ─────────────────────────────────────────────
 # FRONTEND DEPLOYMENT: AMPLIFY MODULE
 # ─────────────────────────────────────────────
 
@@ -93,4 +124,6 @@ module "amplify" {
   cognito_user_pool_id = module.cognito.user_pool_id
   cognito_client_id    = module.cognito.client_id
   region               = var.region
+
+  depends_on = [null_resource.cors_ready]
 }
