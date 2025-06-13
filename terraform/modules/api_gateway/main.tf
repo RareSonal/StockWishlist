@@ -3,11 +3,38 @@ resource "aws_api_gateway_rest_api" "api" {
   description = "API for Stock Wishlist"
 }
 
+# Root-level route /v1 (optional base group)
 resource "aws_api_gateway_resource" "api_resource" {
   rest_api_id = aws_api_gateway_rest_api.api.id
   parent_id   = aws_api_gateway_rest_api.api.root_resource_id
   path_part   = "v1"
 }
+
+# ─────────────────────────────────────────────
+# API Resources
+# ─────────────────────────────────────────────
+
+resource "aws_api_gateway_resource" "login" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  parent_id   = aws_api_gateway_rest_api.api.root_resource_id
+  path_part   = "login"
+}
+
+resource "aws_api_gateway_resource" "stocks" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  parent_id   = aws_api_gateway_rest_api.api.root_resource_id
+  path_part   = "stocks"
+}
+
+resource "aws_api_gateway_resource" "wishlist" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  parent_id   = aws_api_gateway_rest_api.api.root_resource_id
+  path_part   = "wishlist"
+}
+
+# ─────────────────────────────────────────────
+# Cognito Authorizer
+# ─────────────────────────────────────────────
 
 resource "aws_api_gateway_authorizer" "cognito_auth" {
   name            = "cognito-authorizer"
@@ -16,6 +43,10 @@ resource "aws_api_gateway_authorizer" "cognito_auth" {
   type            = "COGNITO_USER_POOLS"
   provider_arns   = [var.cognito_user_pool_arn]
 }
+
+# ─────────────────────────────────────────────
+# /v1 Methods (optional base route)
+# ─────────────────────────────────────────────
 
 locals {
   http_methods_auth = {
@@ -35,7 +66,7 @@ resource "aws_api_gateway_method" "api_methods" {
   authorizer_id = each.value == "COGNITO_USER_POOLS" ? aws_api_gateway_authorizer.cognito_auth.id : null
 }
 
-resource "aws_api_gateway_integration" "integrations" {
+resource "aws_api_gateway_integration" "api_integrations" {
   for_each = aws_api_gateway_method.api_methods
 
   rest_api_id             = aws_api_gateway_rest_api.api.id
@@ -46,44 +77,165 @@ resource "aws_api_gateway_integration" "integrations" {
   uri                     = var.lambda_invoke_arn
 }
 
+# ─────────────────────────────────────────────
+# /login - POST
+# ─────────────────────────────────────────────
+
+resource "aws_api_gateway_method" "login_post" {
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  resource_id   = aws_api_gateway_resource.login.id
+  http_method   = "POST"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "login_post" {
+  rest_api_id             = aws_api_gateway_rest_api.api.id
+  resource_id             = aws_api_gateway_resource.login.id
+  http_method             = "POST"
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.lambda_invoke_arn
+}
+
+# ─────────────────────────────────────────────
+# /stocks - GET, POST, DELETE
+# ─────────────────────────────────────────────
+
+resource "aws_api_gateway_method" "stocks_get" {
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  resource_id   = aws_api_gateway_resource.stocks.id
+  http_method   = "GET"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito_auth.id
+}
+
+resource "aws_api_gateway_integration" "stocks_get" {
+  rest_api_id             = aws_api_gateway_rest_api.api.id
+  resource_id             = aws_api_gateway_resource.stocks.id
+  http_method             = "GET"
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.lambda_invoke_arn
+}
+
+resource "aws_api_gateway_method" "stocks_post" {
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  resource_id   = aws_api_gateway_resource.stocks.id
+  http_method   = "POST"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito_auth.id
+}
+
+resource "aws_api_gateway_integration" "stocks_post" {
+  rest_api_id             = aws_api_gateway_rest_api.api.id
+  resource_id             = aws_api_gateway_resource.stocks.id
+  http_method             = "POST"
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.lambda_invoke_arn
+}
+
+resource "aws_api_gateway_method" "stocks_delete" {
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  resource_id   = aws_api_gateway_resource.stocks.id
+  http_method   = "DELETE"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito_auth.id
+}
+
+resource "aws_api_gateway_integration" "stocks_delete" {
+  rest_api_id             = aws_api_gateway_rest_api.api.id
+  resource_id             = aws_api_gateway_resource.stocks.id
+  http_method             = "DELETE"
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.lambda_invoke_arn
+}
+
+# ─────────────────────────────────────────────
+# /wishlist - GET, POST, DELETE
+# ─────────────────────────────────────────────
+
+resource "aws_api_gateway_method" "wishlist_get" {
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  resource_id   = aws_api_gateway_resource.wishlist.id
+  http_method   = "GET"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito_auth.id
+}
+
+resource "aws_api_gateway_integration" "wishlist_get" {
+  rest_api_id             = aws_api_gateway_rest_api.api.id
+  resource_id             = aws_api_gateway_resource.wishlist.id
+  http_method             = "GET"
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.lambda_invoke_arn
+}
+
+resource "aws_api_gateway_method" "wishlist_post" {
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  resource_id   = aws_api_gateway_resource.wishlist.id
+  http_method   = "POST"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito_auth.id
+}
+
+resource "aws_api_gateway_integration" "wishlist_post" {
+  rest_api_id             = aws_api_gateway_rest_api.api.id
+  resource_id             = aws_api_gateway_resource.wishlist.id
+  http_method             = "POST"
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.lambda_invoke_arn
+}
+
+resource "aws_api_gateway_method" "wishlist_delete" {
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  resource_id   = aws_api_gateway_resource.wishlist.id
+  http_method   = "DELETE"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito_auth.id
+}
+
+resource "aws_api_gateway_integration" "wishlist_delete" {
+  rest_api_id             = aws_api_gateway_rest_api.api.id
+  resource_id             = aws_api_gateway_resource.wishlist.id
+  http_method             = "DELETE"
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.lambda_invoke_arn
+}
+
+# ─────────────────────────────────────────────
+# Deployment & Stage
+# ─────────────────────────────────────────────
+
 resource "aws_api_gateway_deployment" "api_deployment" {
   depends_on = [
-    aws_api_gateway_integration.integrations,
-    aws_api_gateway_method.api_methods
+    aws_api_gateway_method.api_methods,
+    aws_api_gateway_integration.api_integrations,
+
+    aws_api_gateway_method.login_post,
+    aws_api_gateway_integration.login_post,
+
+    aws_api_gateway_method.stocks_get,
+    aws_api_gateway_integration.stocks_get,
+    aws_api_gateway_method.stocks_post,
+    aws_api_gateway_integration.stocks_post,
+    aws_api_gateway_method.stocks_delete,
+    aws_api_gateway_integration.stocks_delete,
+
+    aws_api_gateway_method.wishlist_get,
+    aws_api_gateway_integration.wishlist_get,
+    aws_api_gateway_method.wishlist_post,
+    aws_api_gateway_integration.wishlist_post,
+    aws_api_gateway_method.wishlist_delete,
+    aws_api_gateway_integration.wishlist_delete,
   ]
 
   rest_api_id = aws_api_gateway_rest_api.api.id
 }
 
 resource "aws_api_gateway_stage" "api_stage" {
-  stage_name    = var.stage_name
-  rest_api_id   = aws_api_gateway_rest_api.api.id
-  deployment_id = aws_api_gateway_deployment.api_deployment.id
-
-  access_log_settings {
-    destination_arn = var.log_group_arn
-    format = jsonencode({
-      requestId       = "$context.requestId"
-      ip              = "$context.identity.sourceIp"
-      userAgent       = "$context.identity.userAgent"
-      httpMethod      = "$context.httpMethod"
-      resourcePath    = "$context.resourcePath"
-      status          = "$context.status"
-      responseLatency = "$context.responseLatency"
-    })
-  }
-}
-
-resource "aws_api_gateway_method_settings" "method_settings" {
-  rest_api_id = aws_api_gateway_rest_api.api.id
-  stage_name  = aws_api_gateway_stage.api_stage.stage_name
-  method_path = "*/*" 
-
-  settings {
-    logging_level          = "INFO"
-    metrics_enabled        = true
-    data_trace_enabled     = true
-    throttling_burst_limit = 5000
-    throttling_rate_limit  = 10000
-  }
-}
+  stage_name   
