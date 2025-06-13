@@ -137,7 +137,7 @@ def login_required(f):
 @app.route('/login', methods=['POST', 'OPTIONS'])
 def login():
     if request.method == 'OPTIONS':
-        return '', 200  # Preflight response
+        return '', 200
 
     data = request.get_json()
     username = data.get("username")
@@ -156,6 +156,14 @@ def login():
         }), 200
     else:
         return jsonify({"error": "Invalid credentials"}), 401
+
+@app.route('/login', methods=['GET'])
+def login_get_not_allowed():
+    return jsonify({"error": "GET method not allowed on /login. Use POST."}), 405
+
+@app.route('/favicon.ico', methods=['GET'])
+def favicon():
+    return '', 204
 
 @app.route('/stocks', methods=['GET'])
 @login_required
@@ -234,11 +242,6 @@ def remove_from_wishlist():
 def health_check():
     return jsonify({'message': 'Server is running'})
 
-# Lambda entry point
-def handler(event, context):
-    import awsgi
-    return awsgi.response(app, event, context)
-
-if __name__ == '__main__':
-    port = int(os.getenv("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+@app.route('/<path:path>', methods=['OPTIONS'])
+def catch_all_options(path):
+    return '', 204
