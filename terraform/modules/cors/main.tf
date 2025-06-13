@@ -3,6 +3,8 @@ resource "aws_api_gateway_method" "options" {
   resource_id   = var.resource_id
   http_method   = "OPTIONS"
   authorization = "NONE"
+  # No API key required for OPTIONS requests
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "mock" {
@@ -23,6 +25,7 @@ resource "aws_api_gateway_method_response" "response" {
   status_code = "200"
 
   response_parameters = {
+    # These headers must be true so you can reference them in integration response
     "method.response.header.Access-Control-Allow-Headers" = true
     "method.response.header.Access-Control-Allow-Methods" = true
     "method.response.header.Access-Control-Allow-Origin"  = true
@@ -40,8 +43,9 @@ resource "aws_api_gateway_integration_response" "integration_response" {
   status_code = aws_api_gateway_method_response.response.status_code
 
   response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
-    "method.response.header.Access-Control-Allow-Methods" = "'OPTIONS,GET,POST,PUT,DELETE'"
+    # Include all methods you support on this resource in Allow-Methods
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'OPTIONS,GET,POST,PUT,DELETE,PATCH'"
     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
   }
 
