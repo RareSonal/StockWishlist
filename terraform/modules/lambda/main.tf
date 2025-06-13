@@ -184,3 +184,20 @@ resource "aws_lambda_function" "seed_db_lambda" {
     }
   }
 }
+
+# Optional: Support GET /login & /favicon.ico gracefully
+resource "aws_api_gateway_method" "login_get" {
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  resource_id   = aws_api_gateway_resource.login.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "login_get" {
+  rest_api_id             = aws_api_gateway_rest_api.api.id
+  resource_id             = aws_api_gateway_resource.login.id
+  http_method             = "GET"
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.lambda_invoke_arn
+}
