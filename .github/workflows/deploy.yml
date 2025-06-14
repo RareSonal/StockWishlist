@@ -207,6 +207,30 @@ jobs:
 
           echo "✅ Lambda executed successfully."
 
+      - name: 🧪 Test User Migration Lambda (Dry Run)
+        env:
+          AWS_REGION: us-east-1
+          LAMBDA_FUNCTION_NAME: user-migration
+        run: |
+          echo "{
+            \"userName\": \"testuser\",
+            \"request\": {
+              \"password\": \"testpassword\"
+            },
+            \"userPoolId\": \"${{ secrets.COGNITO_USER_POOL_ID }}\"
+          }" > user_migration_payload.json
+
+          echo "📨 Invoking user-migration Lambda with dry-run payload..."
+          aws lambda invoke \
+            --function-name "$LAMBDA_FUNCTION_NAME" \
+            --region "$AWS_REGION" \
+            --payload fileb://user_migration_payload.json \
+            migration_response.json || true
+
+          echo "📄 Lambda response:"
+          cat migration_response.json
+
+
       - name: 🕵️ Verify Database Tables and Sample Data via Lambda
         env:
           AWS_REGION: us-east-1
