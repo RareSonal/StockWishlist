@@ -38,14 +38,16 @@ module "rds" {
 # ─────────────────────────────────────────────
 
 module "lambda" {
-  source       = "./modules/lambda"
-  subnet_ids   = var.public_subnet_ids
-  lambda_sg_id = module.security_groups.lambda_sg_id
-  db_host      = module.rds.endpoint
-  db_username  = var.db_username
-  db_password  = var.db_password
-  region       = var.region
+  source              = "./modules/lambda"
+  subnet_ids          = var.public_subnet_ids
+  lambda_sg_id        = module.security_groups.lambda_sg_id
+  db_host             = module.rds.endpoint
+  db_username         = var.db_username
+  db_password         = var.db_password
+  region              = var.region
+  cognito_user_pool_id = module.cognito.user_pool_id
 }
+
 
 # ─────────────────────────────────────────────
 # AUTHENTICATION: COGNITO MODULE
