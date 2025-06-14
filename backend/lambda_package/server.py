@@ -134,7 +134,7 @@ def login_required(f):
 
 # --- Routes ---
 
-@app.route('/login', methods=['POST', 'OPTIONS'])
+@app.route('/v1/login', methods=['POST', 'OPTIONS'])
 def login():
     if request.method == 'OPTIONS':
         return '', 200
@@ -157,15 +157,15 @@ def login():
     else:
         return jsonify({"error": "Invalid credentials"}), 401
 
-@app.route('/login', methods=['GET'])
+@app.route('/v1/login', methods=['GET'])
 def login_get_not_allowed():
-    return jsonify({"error": "GET method not allowed on /login. Use POST."}), 405
+    return jsonify({"error": "GET method not allowed on /v1/login. Use POST."}), 405
 
 @app.route('/favicon.ico', methods=['GET'])
 def favicon():
     return '', 204
 
-@app.route('/stocks', methods=['GET'])
+@app.route('/v1/stocks', methods=['GET'])
 @login_required
 def get_stocks():
     try:
@@ -179,7 +179,7 @@ def get_stocks():
         app.logger.error(f"Error fetching stocks: {e}")
         return jsonify({'error': 'Error fetching stocks'}), 500
 
-@app.route('/wishlist', methods=['GET'])
+@app.route('/v1/wishlist', methods=['GET'])
 @login_required
 def get_wishlist():
     user_id = request.user_id
@@ -199,7 +199,7 @@ def get_wishlist():
         app.logger.error(f"Error fetching wishlist: {e}")
         return jsonify({'error': 'Error fetching wishlist'}), 500
 
-@app.route('/wishlist', methods=['POST'])
+@app.route('/v1/wishlist', methods=['POST'])
 @login_required
 def add_to_wishlist():
     user_id = request.user_id
@@ -221,7 +221,7 @@ def add_to_wishlist():
         app.logger.error(f"Error adding to wishlist: {e}")
         return jsonify({'error': 'Error adding to wishlist'}), 500
 
-@app.route('/wishlist', methods=['DELETE'])
+@app.route('/v1/wishlist', methods=['DELETE'])
 @login_required
 def remove_from_wishlist():
     user_id = request.user_id
