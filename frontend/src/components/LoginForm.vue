@@ -66,7 +66,7 @@ export default {
       }
 
       try {
-        const response = await fetch("https://svy233k6zi.execute-api.us-east-1.amazonaws.com/prod/login", {
+        const response = await fetch(`${process.env.VUE_APP_API_BASE}/v1/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -87,14 +87,13 @@ export default {
 
         this.successMessage = "Login successful!";
 
-        // Store tokens (you can also store in Vuex if preferred)
+        // Store tokens
         localStorage.setItem("id_token", data.id_token);
         localStorage.setItem("access_token", data.access_token);
         if (data.refresh_token) {
           localStorage.setItem("refresh_token", data.refresh_token);
         }
 
-        // Navigate to wishlist
         this.$router.push("/wishlist");
       } catch (error) {
         console.error("Login error:", error);
