@@ -50,7 +50,7 @@ export default {
   methods: {
     async fetchStocks() {
       try {
-        const response = await API.get('stocksApi', '/stocks');
+        const response = await API.get('backendApi', '/stocks');
         this.stocks = response;
       } catch (error) {
         this.handleAuthError(error, 'fetching stocks');
@@ -58,7 +58,7 @@ export default {
     },
     async fetchWishlist() {
       try {
-        const response = await API.get('wishlistApi', '/wishlist');
+        const response = await API.get('backendApi', '/wishlist');
         this.wishlist = response;
       } catch (error) {
         this.handleAuthError(error, 'fetching wishlist');
@@ -66,7 +66,7 @@ export default {
     },
     async addToWishlist(stockId) {
       try {
-        await API.post('wishlistApi', '/wishlist', {
+        await API.post('backendApi', '/wishlist', {
           body: { stock_id: stockId },
         });
         await this.fetchWishlist();
