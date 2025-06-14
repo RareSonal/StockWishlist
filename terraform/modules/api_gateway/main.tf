@@ -3,23 +3,18 @@ resource "aws_api_gateway_rest_api" "api" {
   description = "API for Stock Wishlist"
 }
 
-# /v1
 resource "aws_api_gateway_resource" "v1" {
   rest_api_id = aws_api_gateway_rest_api.api.id
   parent_id   = aws_api_gateway_rest_api.api.root_resource_id
   path_part   = "v1"
 }
 
-# /v1/{proxy+}
 resource "aws_api_gateway_resource" "v1_proxy" {
   rest_api_id = aws_api_gateway_rest_api.api.id
   parent_id   = aws_api_gateway_resource.v1.id
   path_part   = "{proxy+}"
 }
 
-# ───────────────────────────────
-# Cognito Authorizer
-# ───────────────────────────────
 resource "aws_api_gateway_authorizer" "cognito_auth" {
   name            = "cognito-authorizer"
   rest_api_id     = aws_api_gateway_rest_api.api.id
@@ -28,9 +23,6 @@ resource "aws_api_gateway_authorizer" "cognito_auth" {
   provider_arns   = [var.cognito_user_pool_arn]
 }
 
-# ───────────────────────────────
-# ANY method for /v1/{proxy+}
-# ───────────────────────────────
 resource "aws_api_gateway_method" "any_proxy" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
   resource_id   = aws_api_gateway_resource.v1_proxy.id
@@ -48,9 +40,6 @@ resource "aws_api_gateway_integration" "any_proxy" {
   uri                     = var.lambda_invoke_arn
 }
 
-# ───────────────────────────────
-# POST /v1/login — public route
-# ───────────────────────────────
 resource "aws_api_gateway_method" "login_post" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
   resource_id   = aws_api_gateway_resource.v1_proxy.id
@@ -70,18 +59,12 @@ resource "aws_api_gateway_integration" "login_post" {
   uri                     = var.lambda_invoke_arn
 }
 
-# ───────────────────────────────
-# CORS for /v1/{proxy+}
-# ───────────────────────────────
 module "cors_v1_proxy" {
   source      = "../cors"
   rest_api_id = aws_api_gateway_rest_api.api.id
   resource_id = aws_api_gateway_resource.v1_proxy.id
 }
 
-# ───────────────────────────────
-# Deployment & Stage
-# ───────────────────────────────
 resource "aws_api_gateway_deployment" "api_deployment" {
   depends_on = [
     aws_api_gateway_method.any_proxy,
