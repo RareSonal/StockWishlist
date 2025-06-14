@@ -135,7 +135,6 @@ resource "aws_lambda_function" "user_migration" {
       DB_PASSWORD          = var.db_password
       DB_NAME              = var.db_name
       COGNITO_REGION       = var.region
-      COGNITO_USER_POOL_ID = var.cognito_user_pool_id
     }
   }
 }
