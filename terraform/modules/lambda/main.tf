@@ -25,32 +25,14 @@ resource "aws_iam_policy_attachment" "lambda_ssm" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
 }
 
-resource "aws_iam_policy" "lambda_cloudwatch_policy" {
-  name        = "lambda-cloudwatch-policy"
-  description = "Allow Lambda to write logs to CloudWatch"
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [{
-      Effect   = "Allow",
-      Action   = "logs:*",
-      Resource = "*"
-    }]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "lambda_cloudwatch_policy_attachment" {
-  role       = aws_iam_role.lambda_exec.name
-  policy_arn = aws_iam_policy.lambda_cloudwatch_policy.arn
-}
-
 resource "aws_iam_policy" "lambda_cognito_policy" {
   name        = "lambda-cognito-policy"
   description = "Allow Lambda to interact with Cognito for user migration"
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
-      Effect = "Allow",
-      Action = [
+      Effect   = "Allow",
+      Action   = [
         "cognito-idp:AdminCreateUser",
         "cognito-idp:AdminSetUserPassword",
         "cognito-idp:AdminAddUserToGroup",
@@ -78,7 +60,7 @@ resource "aws_lambda_layer_version" "python_deps" {
 }
 
 # ─────────────────────────────────────────────
-# Lambda Archive Files
+# Lambda Archives
 # ─────────────────────────────────────────────
 
 data "archive_file" "flask_backend" {
@@ -124,8 +106,8 @@ resource "aws_lambda_function" "flask_backend" {
       DB_HOST     = var.db_host
       DB_USER     = var.db_username
       DB_PASSWORD = var.db_password
-      DB_NAME     = "stockwishlist"
-      DB_PORT     = "5432"
+      DB_NAME     = var.db_name
+      DB_PORT     = var.db_port
     }
   }
 }
@@ -151,13 +133,12 @@ resource "aws_lambda_function" "user_migration" {
       DB_HOST              = var.db_host
       DB_USER              = var.db_username
       DB_PASSWORD          = var.db_password
-      DB_NAME              = "stockwishlist"
+      DB_NAME              = var.db_name
       COGNITO_REGION       = var.region
-      COGNITO_USER_POOL_ID = aws_cognito_user_pool.user_pool.id
+      COGNITO_USER_POOL_ID = var.cognito_user_pool_id
     }
   }
 }
-
 
 resource "aws_lambda_function" "seed_db_lambda" {
   function_name = "seed-db-lambda"
@@ -180,24 +161,7 @@ resource "aws_lambda_function" "seed_db_lambda" {
       DB_HOST     = var.db_host
       DB_USER     = var.db_username
       DB_PASSWORD = var.db_password
-      DB_NAME     = "stockwishlist"
+      DB_NAME     = var.db_name
     }
   }
-}
-
-# Optional: Support GET /login & /favicon.ico gracefully
-resource "aws_api_gateway_method" "login_get" {
-  rest_api_id   = aws_api_gateway_rest_api.api.id
-  resource_id   = aws_api_gateway_resource.login.id
-  http_method   = "GET"
-  authorization = "NONE"
-}
-
-resource "aws_api_gateway_integration" "login_get" {
-  rest_api_id             = aws_api_gateway_rest_api.api.id
-  resource_id             = aws_api_gateway_resource.login.id
-  http_method             = "GET"
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = var.lambda_invoke_arn
 }
