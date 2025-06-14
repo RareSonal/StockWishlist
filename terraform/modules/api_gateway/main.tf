@@ -3,21 +3,23 @@ resource "aws_api_gateway_rest_api" "api" {
   description = "API for Stock Wishlist"
 }
 
-# /v1 resource
+# /v1
 resource "aws_api_gateway_resource" "v1" {
   rest_api_id = aws_api_gateway_rest_api.api.id
   parent_id   = aws_api_gateway_rest_api.api.root_resource_id
   path_part   = "v1"
 }
 
-# /v1/{proxy+} resource
+# /v1/{proxy+}
 resource "aws_api_gateway_resource" "v1_proxy" {
   rest_api_id = aws_api_gateway_rest_api.api.id
   parent_id   = aws_api_gateway_resource.v1.id
   path_part   = "{proxy+}"
 }
 
+# ───────────────────────────────
 # Cognito Authorizer
+# ───────────────────────────────
 resource "aws_api_gateway_authorizer" "cognito_auth" {
   name            = "cognito-authorizer"
   rest_api_id     = aws_api_gateway_rest_api.api.id
@@ -26,8 +28,10 @@ resource "aws_api_gateway_authorizer" "cognito_auth" {
   provider_arns   = [var.cognito_user_pool_arn]
 }
 
-# ANY method on /v1/{proxy+}
-resource "aws_api_gateway_method" "proxy_any" {
+# ───────────────────────────────
+# ANY method for /v1/{proxy+}
+# ───────────────────────────────
+resource "aws_api_gateway_method" "any_proxy" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
   resource_id   = aws_api_gateway_resource.v1_proxy.id
   http_method   = "ANY"
@@ -35,62 +39,62 @@ resource "aws_api_gateway_method" "proxy_any" {
   authorizer_id = aws_api_gateway_authorizer.cognito_auth.id
 }
 
-# Integration for /v1/{proxy+}
-resource "aws_api_gateway_integration" "proxy_any" {
+resource "aws_api_gateway_integration" "any_proxy" {
   rest_api_id             = aws_api_gateway_rest_api.api.id
   resource_id             = aws_api_gateway_resource.v1_proxy.id
-  http_method             = aws_api_gateway_method.proxy_any.http_method
+  http_method             = aws_api_gateway_method.any_proxy.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = var.lambda_invoke_arn
 }
 
-# OPTIONS support for CORS
-resource "aws_api_gateway_method" "proxy_options" {
+# ───────────────────────────────
+# POST /v1/login — public route
+# ───────────────────────────────
+resource "aws_api_gateway_method" "login_post" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
   resource_id   = aws_api_gateway_resource.v1_proxy.id
-  http_method   = "OPTIONS"
+  http_method   = "POST"
   authorization = "NONE"
+  request_parameters = {
+    "method.request.path.proxy" = true
+  }
 }
 
-resource "aws_api_gateway_integration" "proxy_options" {
+resource "aws_api_gateway_integration" "login_post" {
   rest_api_id             = aws_api_gateway_rest_api.api.id
   resource_id             = aws_api_gateway_resource.v1_proxy.id
-  http_method             = "OPTIONS"
+  http_method             = "POST"
   integration_http_method = "POST"
-  type                    = "MOCK"
-
-  request_templates = {
-    "application/json" = <<EOF
-{
-  "statusCode": 200
-}
-EOF
-  }
-
-  passthrough_behavior = "WHEN_NO_MATCH"
+  type                    = "AWS_PROXY"
+  uri                     = var.lambda_invoke_arn
 }
 
-resource "aws_api_gateway_method_response" "proxy_options_200" {
+# ───────────────────────────────
+# CORS for /v1/{proxy+}
+# ───────────────────────────────
+module "cors_v1_proxy" {
+  source      = "../cors"
   rest_api_id = aws_api_gateway_rest_api.api.id
   resource_id = aws_api_gateway_resource.v1_proxy.id
-  http_method = aws_api_gateway_method.proxy_options.http_method
-  status_code = "200"
-
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = true,
-    "method.response.header.Access-Control-Allow-Methods" = true,
-    "method.response.header.Access-Control-Allow-Origin"  = true
-  }
 }
 
-resource "aws_api_gateway_integration_response" "proxy_options_200" {
-  rest_api_id = aws_api_gateway_rest_api.api.id
-  resource_id = aws_api_gateway_resource.v1_proxy.id
-  http_method = aws_api_gateway_method.proxy_options.http_method
-  status_code = aws_api_gateway_method_response.proxy_options_200.status_code
+# ───────────────────────────────
+# Deployment & Stage
+# ───────────────────────────────
+resource "aws_api_gateway_deployment" "api_deployment" {
+  depends_on = [
+    aws_api_gateway_method.any_proxy,
+    aws_api_gateway_integration.any_proxy,
+    aws_api_gateway_method.login_post,
+    aws_api_gateway_integration.login_post
+  ]
 
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'",
-    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'",
-    "method.response.header.Access-Control-Allow-Origin"  =
+  rest_api_id = aws_api_gateway_rest_api.api.id
+}
+
+resource "aws_api_gateway_stage" "api_stage" {
+  deployment_id = aws_api_gateway_deployment.api_deployment.id
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  stage_name    = var.stage_name
+}
