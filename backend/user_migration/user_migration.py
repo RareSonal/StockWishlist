@@ -14,7 +14,7 @@ db_config = {
     'port': os.getenv('DB_PORT', 5432)
 }
 
-# Cognito region only (user pool ID will come from event)
+# Cognito region (still from env, as region remains static in most deployments)
 COGNITO_REGION = os.getenv("COGNITO_REGION")
 
 client = boto3.client('cognito-idp', region_name=COGNITO_REGION)
@@ -35,15 +35,16 @@ def get_user_from_db(username):
 def migrate_user(event, context):
     username = event['userName']
     password = event['request']['password']
-    user_pool_id = event.get('userPoolId')  # 🔁 Use value from event
 
-    if not user_pool_id:
-        print("[Error] Missing 'userPoolId' in event.")
-        raise Exception("Missing user pool ID")
+    # 🔁 Get Cognito Pool ID from event payload
+    COGNITO_POOL_ID = event.get("userPoolId")
+    if not COGNITO_POOL_ID:
+        print("[Error] Missing Cognito User Pool ID in event payload.")
+        raise Exception("Missing Cognito User Pool ID.")
 
     user = get_user_from_db(username)
     if not user:
-        print(f"[Error] User '{username}' not found.")
+        print(f"[Error] User '{username}' not found in DB.")
         raise Exception("User not found")
 
     user_id, email, stored_password = user
@@ -53,9 +54,9 @@ def migrate_user(event, context):
         raise Exception("Invalid credentials")
 
     try:
-        # Step 1: Create user without triggering email
+        # Step 1: Create user without sending welcome email
         client.admin_create_user(
-            UserPoolId=user_pool_id,
+            UserPoolId=COGNITO_POOL_ID,
             Username=username,
             UserAttributes=[
                 {'Name': 'email', 'Value': email},
@@ -64,19 +65,19 @@ def migrate_user(event, context):
             MessageAction='SUPPRESS'
         )
 
-        # Step 2: Set the user's password securely
+        # Step 2: Set permanent password
         client.admin_set_user_password(
-            UserPoolId=user_pool_id,
+            UserPoolId=COGNITO_POOL_ID,
             Username=username,
             Password=password,
             Permanent=True
         )
 
-        print(f"[Success] User '{username}' migrated and password set.")
+        print(f"[Success] User '{username}' migrated to Cognito.")
         return event
 
     except client.exceptions.UsernameExistsException:
-        print(f"[Info] User '{username}' already exists in Cognito.")
+        print(f"[Info] User '{username}' already exists in Cognito. Skipping.")
         return event
 
     except Exception as e:
