@@ -1,5 +1,7 @@
 // frontend/src/aws-exports.js
 
+const apiBase = (process.env.VUE_APP_API_BASE || '').replace(/\/+$/, ''); 
+
 const awsExports = {
   Auth: {
     region: process.env.VUE_APP_REGION || 'us-east-1',
@@ -10,13 +12,8 @@ const awsExports = {
   API: {
     endpoints: [
       {
-        name: 'stocksApi',
-        endpoint: process.env.VUE_APP_API_BASE || '',
-        region: process.env.VUE_APP_REGION || 'us-east-1',
-      },
-      {
-        name: 'wishlistApi',
-        endpoint: process.env.VUE_APP_API_BASE || '',
+        name: 'backendApi',
+        endpoint: `${apiBase}/v1`, 
         region: process.env.VUE_APP_REGION || 'us-east-1',
       },
     ],
