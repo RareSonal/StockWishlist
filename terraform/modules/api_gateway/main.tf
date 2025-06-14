@@ -3,39 +3,21 @@ resource "aws_api_gateway_rest_api" "api" {
   description = "API for Stock Wishlist"
 }
 
-# Root-level route /v1 (optional base group)
-resource "aws_api_gateway_resource" "api_resource" {
+# /v1 resource
+resource "aws_api_gateway_resource" "v1" {
   rest_api_id = aws_api_gateway_rest_api.api.id
   parent_id   = aws_api_gateway_rest_api.api.root_resource_id
   path_part   = "v1"
 }
 
-# ─────────────────────────────────────────────
-# API Resources
-# ─────────────────────────────────────────────
-
-resource "aws_api_gateway_resource" "login" {
+# /v1/{proxy+} resource
+resource "aws_api_gateway_resource" "v1_proxy" {
   rest_api_id = aws_api_gateway_rest_api.api.id
-  parent_id   = aws_api_gateway_rest_api.api.root_resource_id
-  path_part   = "login"
+  parent_id   = aws_api_gateway_resource.v1.id
+  path_part   = "{proxy+}"
 }
 
-resource "aws_api_gateway_resource" "stocks" {
-  rest_api_id = aws_api_gateway_rest_api.api.id
-  parent_id   = aws_api_gateway_rest_api.api.root_resource_id
-  path_part   = "stocks"
-}
-
-resource "aws_api_gateway_resource" "wishlist" {
-  rest_api_id = aws_api_gateway_rest_api.api.id
-  parent_id   = aws_api_gateway_rest_api.api.root_resource_id
-  path_part   = "wishlist"
-}
-
-# ─────────────────────────────────────────────
 # Cognito Authorizer
-# ─────────────────────────────────────────────
-
 resource "aws_api_gateway_authorizer" "cognito_auth" {
   name            = "cognito-authorizer"
   rest_api_id     = aws_api_gateway_rest_api.api.id
@@ -44,198 +26,71 @@ resource "aws_api_gateway_authorizer" "cognito_auth" {
   provider_arns   = [var.cognito_user_pool_arn]
 }
 
-# ─────────────────────────────────────────────
-# /v1 Methods (optional base route)
-# ─────────────────────────────────────────────
-
-locals {
-  http_methods_auth = {
-    GET    = "COGNITO_USER_POOLS"
-    POST   = "COGNITO_USER_POOLS"
-    PUT    = "NONE"
-    DELETE = "NONE"
-  }
-}
-
-resource "aws_api_gateway_method" "api_methods" {
-  for_each      = local.http_methods_auth
+# ANY method on /v1/{proxy+}
+resource "aws_api_gateway_method" "proxy_any" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
-  resource_id   = aws_api_gateway_resource.api_resource.id
-  http_method   = each.key
-  authorization = each.value
-  authorizer_id = each.value == "COGNITO_USER_POOLS" ? aws_api_gateway_authorizer.cognito_auth.id : null
+  resource_id   = aws_api_gateway_resource.v1_proxy.id
+  http_method   = "ANY"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito_auth.id
 }
 
-resource "aws_api_gateway_integration" "api_integrations" {
-  for_each = aws_api_gateway_method.api_methods
-
+# Integration for /v1/{proxy+}
+resource "aws_api_gateway_integration" "proxy_any" {
   rest_api_id             = aws_api_gateway_rest_api.api.id
-  resource_id             = aws_api_gateway_resource.api_resource.id
-  http_method             = each.key
+  resource_id             = aws_api_gateway_resource.v1_proxy.id
+  http_method             = aws_api_gateway_method.proxy_any.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = var.lambda_invoke_arn
 }
 
-# ─────────────────────────────────────────────
-# /login - POST
-# ─────────────────────────────────────────────
-
-resource "aws_api_gateway_method" "login_post" {
+# OPTIONS support for CORS
+resource "aws_api_gateway_method" "proxy_options" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
-  resource_id   = aws_api_gateway_resource.login.id
-  http_method   = "POST"
+  resource_id   = aws_api_gateway_resource.v1_proxy.id
+  http_method   = "OPTIONS"
   authorization = "NONE"
 }
 
-resource "aws_api_gateway_integration" "login_post" {
+resource "aws_api_gateway_integration" "proxy_options" {
   rest_api_id             = aws_api_gateway_rest_api.api.id
-  resource_id             = aws_api_gateway_resource.login.id
-  http_method             = "POST"
+  resource_id             = aws_api_gateway_resource.v1_proxy.id
+  http_method             = "OPTIONS"
   integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = var.lambda_invoke_arn
+  type                    = "MOCK"
+
+  request_templates = {
+    "application/json" = <<EOF
+{
+  "statusCode": 200
+}
+EOF
+  }
+
+  passthrough_behavior = "WHEN_NO_MATCH"
 }
 
-# ─────────────────────────────────────────────
-# /stocks - GET, POST, DELETE
-# ─────────────────────────────────────────────
-
-resource "aws_api_gateway_method" "stocks_get" {
-  rest_api_id   = aws_api_gateway_rest_api.api.id
-  resource_id   = aws_api_gateway_resource.stocks.id
-  http_method   = "GET"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.cognito_auth.id
-}
-
-resource "aws_api_gateway_integration" "stocks_get" {
-  rest_api_id             = aws_api_gateway_rest_api.api.id
-  resource_id             = aws_api_gateway_resource.stocks.id
-  http_method             = "GET"
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = var.lambda_invoke_arn
-}
-
-resource "aws_api_gateway_method" "stocks_post" {
-  rest_api_id   = aws_api_gateway_rest_api.api.id
-  resource_id   = aws_api_gateway_resource.stocks.id
-  http_method   = "POST"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.cognito_auth.id
-}
-
-resource "aws_api_gateway_integration" "stocks_post" {
-  rest_api_id             = aws_api_gateway_rest_api.api.id
-  resource_id             = aws_api_gateway_resource.stocks.id
-  http_method             = "POST"
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = var.lambda_invoke_arn
-}
-
-resource "aws_api_gateway_method" "stocks_delete" {
-  rest_api_id   = aws_api_gateway_rest_api.api.id
-  resource_id   = aws_api_gateway_resource.stocks.id
-  http_method   = "DELETE"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.cognito_auth.id
-}
-
-resource "aws_api_gateway_integration" "stocks_delete" {
-  rest_api_id             = aws_api_gateway_rest_api.api.id
-  resource_id             = aws_api_gateway_resource.stocks.id
-  http_method             = "DELETE"
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = var.lambda_invoke_arn
-}
-
-# ─────────────────────────────────────────────
-# /wishlist - GET, POST, DELETE
-# ─────────────────────────────────────────────
-
-resource "aws_api_gateway_method" "wishlist_get" {
-  rest_api_id   = aws_api_gateway_rest_api.api.id
-  resource_id   = aws_api_gateway_resource.wishlist.id
-  http_method   = "GET"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.cognito_auth.id
-}
-
-resource "aws_api_gateway_integration" "wishlist_get" {
-  rest_api_id             = aws_api_gateway_rest_api.api.id
-  resource_id             = aws_api_gateway_resource.wishlist.id
-  http_method             = "GET"
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = var.lambda_invoke_arn
-}
-
-resource "aws_api_gateway_method" "wishlist_post" {
-  rest_api_id   = aws_api_gateway_rest_api.api.id
-  resource_id   = aws_api_gateway_resource.wishlist.id
-  http_method   = "POST"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.cognito_auth.id
-}
-
-resource "aws_api_gateway_integration" "wishlist_post" {
-  rest_api_id             = aws_api_gateway_rest_api.api.id
-  resource_id             = aws_api_gateway_resource.wishlist.id
-  http_method             = "POST"
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = var.lambda_invoke_arn
-}
-
-resource "aws_api_gateway_method" "wishlist_delete" {
-  rest_api_id   = aws_api_gateway_rest_api.api.id
-  resource_id   = aws_api_gateway_resource.wishlist.id
-  http_method   = "DELETE"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.cognito_auth.id
-}
-
-resource "aws_api_gateway_integration" "wishlist_delete" {
-  rest_api_id             = aws_api_gateway_rest_api.api.id
-  resource_id             = aws_api_gateway_resource.wishlist.id
-  http_method             = "DELETE"
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = var.lambda_invoke_arn
-}
-
-# ─────────────────────────────────────────────
-# Deployment & Stage
-# ─────────────────────────────────────────────
-
-resource "aws_api_gateway_deployment" "api_deployment" {
-  depends_on = [
-    aws_api_gateway_method.api_methods,
-    aws_api_gateway_integration.api_integrations,
-
-    aws_api_gateway_method.login_post,
-    aws_api_gateway_integration.login_post,
-
-    aws_api_gateway_method.stocks_get,
-    aws_api_gateway_integration.stocks_get,
-    aws_api_gateway_method.stocks_post,
-    aws_api_gateway_integration.stocks_post,
-    aws_api_gateway_method.stocks_delete,
-    aws_api_gateway_integration.stocks_delete,
-
-    aws_api_gateway_method.wishlist_get,
-    aws_api_gateway_integration.wishlist_get,
-    aws_api_gateway_method.wishlist_post,
-    aws_api_gateway_integration.wishlist_post,
-    aws_api_gateway_method.wishlist_delete,
-    aws_api_gateway_integration.wishlist_delete,
-  ]
-
+resource "aws_api_gateway_method_response" "proxy_options_200" {
   rest_api_id = aws_api_gateway_rest_api.api.id
+  resource_id = aws_api_gateway_resource.v1_proxy.id
+  http_method = aws_api_gateway_method.proxy_options.http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true,
+    "method.response.header.Access-Control-Allow-Methods" = true,
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
 }
 
-resource "aws_api_gateway_stage" "api_stage" {
-  stage_name   
+resource "aws_api_gateway_integration_response" "proxy_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  resource_id = aws_api_gateway_resource.v1_proxy.id
+  http_method = aws_api_gateway_method.proxy_options.http_method
+  status_code = aws_api_gateway_method_response.proxy_options_200.status_code
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'",
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'",
+    "method.response.header.Access-Control-Allow-Origin"  =
