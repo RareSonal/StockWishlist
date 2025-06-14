@@ -42,7 +42,4 @@ variable "db_port" {
   default     = "5432"
 }
 
-variable "cognito_user_pool_id" {
-  description = "Cognito User Pool ID for user migration Lambda environment"
-  type        = string
-}
+
