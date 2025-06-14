@@ -45,7 +45,6 @@ module "lambda" {
   db_username         = var.db_username
   db_password         = var.db_password
   region              = var.region
-  cognito_user_pool_id = module.cognito.user_pool_id
 }
 
 
