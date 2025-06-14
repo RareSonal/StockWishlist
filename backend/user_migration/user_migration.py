@@ -14,8 +14,7 @@ db_config = {
     'port': os.getenv('DB_PORT', 5432)
 }
 
-# Cognito config
-COGNITO_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
+# Cognito region only (user pool ID will come from event)
 COGNITO_REGION = os.getenv("COGNITO_REGION")
 
 client = boto3.client('cognito-idp', region_name=COGNITO_REGION)
@@ -36,6 +35,11 @@ def get_user_from_db(username):
 def migrate_user(event, context):
     username = event['userName']
     password = event['request']['password']
+    user_pool_id = event.get('userPoolId')  # 🔁 Use value from event
+
+    if not user_pool_id:
+        print("[Error] Missing 'userPoolId' in event.")
+        raise Exception("Missing user pool ID")
 
     user = get_user_from_db(username)
     if not user:
@@ -51,7 +55,7 @@ def migrate_user(event, context):
     try:
         # Step 1: Create user without triggering email
         client.admin_create_user(
-            UserPoolId=COGNITO_POOL_ID,
+            UserPoolId=user_pool_id,
             Username=username,
             UserAttributes=[
                 {'Name': 'email', 'Value': email},
@@ -62,7 +66,7 @@ def migrate_user(event, context):
 
         # Step 2: Set the user's password securely
         client.admin_set_user_password(
-            UserPoolId=COGNITO_POOL_ID,
+            UserPoolId=user_pool_id,
             Username=username,
             Password=password,
             Permanent=True
