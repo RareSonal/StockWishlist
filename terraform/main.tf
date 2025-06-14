@@ -38,15 +38,14 @@ module "rds" {
 # ─────────────────────────────────────────────
 
 module "lambda" {
-  source              = "./modules/lambda"
-  subnet_ids          = var.public_subnet_ids
-  lambda_sg_id        = module.security_groups.lambda_sg_id
-  db_host             = module.rds.endpoint
-  db_username         = var.db_username
-  db_password         = var.db_password
-  region              = var.region
+  source       = "./modules/lambda"
+  subnet_ids   = var.public_subnet_ids
+  lambda_sg_id = module.security_groups.lambda_sg_id
+  db_host      = module.rds.endpoint
+  db_username  = var.db_username
+  db_password  = var.db_password
+  region       = var.region
 }
-
 
 # ─────────────────────────────────────────────
 # AUTHENTICATION: COGNITO MODULE
@@ -83,34 +82,13 @@ module "api_gateway" {
 }
 
 # ─────────────────────────────────────────────
-# CORS MODULES FOR EACH ENDPOINT
+# CORS for /v1/{proxy+} ONLY
 # ─────────────────────────────────────────────
 
-module "cors_login" {
-  source       = "./modules/cors"
-  rest_api_id  = module.api_gateway.api_id
-  resource_id  = module.api_gateway.login_resource_id
-}
-
-module "cors_stocks" {
-  source       = "./modules/cors"
-  rest_api_id  = module.api_gateway.api_id
-  resource_id  = module.api_gateway.stocks_resource_id
-}
-
-module "cors_wishlist" {
-  source       = "./modules/cors"
-  rest_api_id  = module.api_gateway.api_id
-  resource_id  = module.api_gateway.wishlist_resource_id
-}
-
-# Optional: dummy resource to ensure CORS modules are fully applied before any dependent module
-resource "null_resource" "cors_ready" {
-  depends_on = [
-    module.cors_login,
-    module.cors_stocks,
-    module.cors_wishlist
-  ]
+module "cors_v1_proxy" {
+  source      = "./modules/cors"
+  rest_api_id = module.api_gateway.api_id
+  resource_id = module.api_gateway.proxy_resource_id
 }
 
 # ─────────────────────────────────────────────
@@ -126,5 +104,5 @@ module "amplify" {
   cognito_client_id    = module.cognito.client_id
   region               = var.region
 
-  depends_on = [null_resource.cors_ready]
+  depends_on = [module.cors_v1_proxy]
 }
