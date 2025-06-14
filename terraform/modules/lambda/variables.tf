@@ -21,6 +21,7 @@ variable "db_username" {
 variable "db_password" {
   description = "Password for connecting to the database"
   type        = string
+  sensitive   = true
 }
 
 variable "region" {
@@ -29,7 +30,6 @@ variable "region" {
   default     = "us-east-1"
 }
 
-# Optional enhancements
 variable "db_name" {
   description = "Name of the database"
   type        = string
@@ -40,4 +40,9 @@ variable "db_port" {
   description = "Port for connecting to the database"
   type        = string
   default     = "5432"
+}
+
+variable "cognito_user_pool_id" {
+  description = "Cognito User Pool ID for user migration Lambda environment"
+  type        = string
 }
