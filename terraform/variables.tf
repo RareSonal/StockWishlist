@@ -16,12 +16,24 @@ variable "db_username" {
 }
 
 variable "db_password" {
-  type = string
+  type      = string
   sensitive = true
 }
 
+variable "db_name" {
+  description = "PostgreSQL database name"
+  type        = string
+  default     = "postgres"
+}
+
+variable "db_port" {
+  description = "PostgreSQL port"
+  type        = number
+  default     = 5432
+}
+
 variable "github_oauth_token" {
-  type = string
+  type      = string
   sensitive = true
 }
 
