@@ -14,3 +14,8 @@ variable "stage_name" {
 variable "log_group_arn" {
   type = string
 }
+
+variable "region" {
+  description = "AWS region"
+  type        = string
+}
