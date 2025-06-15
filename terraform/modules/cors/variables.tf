@@ -9,5 +9,5 @@ variable "resource_id" {
 variable "create_options_method" {
   description = "Whether to create the OPTIONS method for CORS"
   type        = bool
-  default     = true
+  default     = false
 }
