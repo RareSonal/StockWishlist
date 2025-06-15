@@ -218,7 +218,7 @@ jobs:
       - name: 🧪 Test User Migration Lambda (Dry Run)
         env:
           AWS_REGION: us-east-1
-          LAMBDA_FUNCTION_NAME: user-migration
+          LAMBDA_FUNCTION_NAME: user-migration-lambda
         run: |
           echo "{
             \"userName\": \"testuser\",
