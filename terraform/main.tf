@@ -44,6 +44,8 @@ module "lambda" {
   db_host      = module.rds.endpoint
   db_username  = var.db_username
   db_password  = var.db_password
+  db_name      = var.db_name
+  db_port      = var.db_port
   region       = var.region
 }
 
@@ -52,9 +54,9 @@ module "lambda" {
 # ─────────────────────────────────────────────
 
 module "cognito" {
-  source                    = "./modules/cognito"
-  user_migration_lambda_arn = module.lambda.user_migration_lambda_arn
-  region                    = var.region
+  source                     = "./modules/cognito"
+  user_migration_lambda_arn  = module.lambda.user_migration_lambda_arn
+  region                     = var.region
 }
 
 # ─────────────────────────────────────────────
@@ -82,14 +84,39 @@ module "api_gateway" {
 }
 
 # ─────────────────────────────────────────────
-# CORS for /v1/{proxy+}
+# CORS CONFIGURATION MODULES
 # ─────────────────────────────────────────────
 
+# For /v1/{proxy+}
 module "cors_v1_proxy" {
   source                = "./modules/cors"
   rest_api_id           = module.api_gateway.api_id
   resource_id           = module.api_gateway.proxy_resource_id
-  create_options_method = true 
+  create_options_method = true
+}
+
+# For /v1/login
+module "cors_login" {
+  source                = "./modules/cors"
+  rest_api_id           = module.api_gateway.api_id
+  resource_id           = module.api_gateway.login_resource_id
+  create_options_method = true
+}
+
+# For /v1/stocks
+module "cors_stocks" {
+  source                = "./modules/cors"
+  rest_api_id           = module.api_gateway.api_id
+  resource_id           = module.api_gateway.stocks_resource_id
+  create_options_method = true
+}
+
+# For /v1/wishlist
+module "cors_wishlist" {
+  source                = "./modules/cors"
+  rest_api_id           = module.api_gateway.api_id
+  resource_id           = module.api_gateway.wishlist_resource_id
+  create_options_method = true
 }
 
 # ─────────────────────────────────────────────
@@ -105,5 +132,10 @@ module "amplify" {
   cognito_client_id    = module.cognito.client_id
   region               = var.region
 
-  depends_on = [module.cors_v1_proxy]
+  depends_on = [
+    module.cors_v1_proxy,
+    module.cors_login,
+    module.cors_stocks,
+    module.cors_wishlist
+  ]
 }
