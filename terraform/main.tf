@@ -81,6 +81,7 @@ module "api_gateway" {
   cognito_user_pool_arn = module.cognito.user_pool_arn
   stage_name            = var.api_stage_name
   log_group_arn         = module.cloudwatch.api_log_group_arn
+  region                = var.region           
 }
 
 # ─────────────────────────────────────────────
