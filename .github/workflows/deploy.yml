@@ -123,6 +123,14 @@ jobs:
         env:
           PUBLIC_SUBNET_IDS: ${{ secrets.PUBLIC_SUBNET_IDS }}
 
+      - name: 🔄 Terraform Refresh
+        working-directory: terraform
+        run: terraform refresh
+
+      - name: 🐞 Terraform State List (Debug)
+        working-directory: terraform
+        run: terraform state list
+
       - name: 📋 Terraform Plan and Save Output
         id: tf_plan
         working-directory: terraform
