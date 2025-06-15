@@ -82,14 +82,14 @@ module "api_gateway" {
 }
 
 # ─────────────────────────────────────────────
-# CORS for /v1/{proxy+} ONLY
+# CORS for /v1/{proxy+}
 # ─────────────────────────────────────────────
 
 module "cors_v1_proxy" {
   source                = "./modules/cors"
   rest_api_id           = module.api_gateway.api_id
   resource_id           = module.api_gateway.proxy_resource_id
-  create_options_method = false 
+  create_options_method = true 
 }
 
 # ─────────────────────────────────────────────
