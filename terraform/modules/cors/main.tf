@@ -1,11 +1,10 @@
-
 resource "aws_api_gateway_method" "options" {
-  count             = var.create_options_method ? 1 : 0
-  rest_api_id       = var.rest_api_id
-  resource_id       = var.resource_id
-  http_method       = "OPTIONS"
-  authorization     = "NONE"
-  api_key_required  = false
+  count            = var.create_options_method ? 1 : 0
+  rest_api_id      = var.rest_api_id
+  resource_id      = var.resource_id
+  http_method      = "OPTIONS"
+  authorization    = "NONE"
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "mock" {
