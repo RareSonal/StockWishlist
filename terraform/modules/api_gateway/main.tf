@@ -138,8 +138,9 @@ resource "aws_api_gateway_integration" "wishlist_integrations" {
 }
 
 # ────────────────────────────────
-# Deployment
+# Deployment and Stage
 # ────────────────────────────────
+
 resource "aws_api_gateway_deployment" "api_deployment" {
   depends_on = [
     aws_api_gateway_method.any_proxy,
@@ -153,7 +154,13 @@ resource "aws_api_gateway_deployment" "api_deployment" {
   ]
 
   rest_api_id = aws_api_gateway_rest_api.api.id
-  stage_name  = var.stage_name
+
+  triggers = {
+    redeployment = sha1(jsonencode([
+      aws_api_gateway_method.any_proxy.id,
+      aws_api_gateway_method.login_post.id
+    ]))
+  }
 }
 
 resource "aws_api_gateway_stage" "api_stage" {
@@ -165,4 +172,3 @@ resource "aws_api_gateway_stage" "api_stage" {
     create_before_destroy = true
   }
 }
-
