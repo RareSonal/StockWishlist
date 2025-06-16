@@ -72,8 +72,6 @@ resource "aws_api_gateway_integration_response" "options_integration_response" {
     "method.response.header.Access-Control-Max-Age"       = "'3600'"
   }
 
-  integration_id = aws_api_gateway_integration.options_mock[0].id
-
   lifecycle {
     create_before_destroy = true
   }
