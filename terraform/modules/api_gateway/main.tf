@@ -150,7 +150,11 @@ resource "aws_api_gateway_deployment" "api_deployment" {
     aws_api_gateway_method.stocks_methods,
     aws_api_gateway_integration.stocks_integrations,
     aws_api_gateway_method.wishlist_methods,
-    aws_api_gateway_integration.wishlist_integrations
+    aws_api_gateway_integration.wishlist_integrations,
+    module.cors_login,
+    module.cors_stocks,
+    module.cors_wishlist,
+    module.cors_v1_proxy
   ]
 
   rest_api_id = aws_api_gateway_rest_api.api.id
@@ -158,7 +162,13 @@ resource "aws_api_gateway_deployment" "api_deployment" {
   triggers = {
     redeployment = sha1(jsonencode([
       aws_api_gateway_method.any_proxy.id,
-      aws_api_gateway_method.login_post.id
+      aws_api_gateway_method.login_post.id,
+      aws_api_gateway_method.stocks_methods.*.id,
+      aws_api_gateway_method.wishlist_methods.*.id,
+      module.cors_login,
+      module.cors_stocks,
+      module.cors_wishlist,
+      module.cors_v1_proxy
     ]))
   }
 }
