@@ -150,7 +150,7 @@ module "amplify" {
     module.cors_v1_proxy,
     module.cors_login,
     module.cors_stocks,
-    module.cors_wishlist
+    module.cors_wishlist,
     module.cors_root
   ]
 }
