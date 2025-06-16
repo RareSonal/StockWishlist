@@ -54,9 +54,9 @@ module "lambda" {
 # ─────────────────────────────────────────────
 
 module "cognito" {
-  source                     = "./modules/cognito"
-  user_migration_lambda_arn  = module.lambda.user_migration_lambda_arn
-  region                     = var.region
+  source                    = "./modules/cognito"
+  user_migration_lambda_arn = module.lambda.user_migration_lambda_arn
+  region                    = var.region
 }
 
 # ─────────────────────────────────────────────
@@ -81,7 +81,7 @@ module "api_gateway" {
   cognito_user_pool_arn = module.cognito.user_pool_arn
   stage_name            = var.api_stage_name
   log_group_arn         = module.cloudwatch.api_log_group_arn
-  region                = var.region           
+  region                = var.region
 }
 
 # ─────────────────────────────────────────────
@@ -94,6 +94,7 @@ module "cors_v1_proxy" {
   rest_api_id           = module.api_gateway.api_id
   resource_id           = module.api_gateway.proxy_resource_id
   create_options_method = true
+  depends_on            = [module.api_gateway]  
 }
 
 # For /v1/login
@@ -102,6 +103,7 @@ module "cors_login" {
   rest_api_id           = module.api_gateway.api_id
   resource_id           = module.api_gateway.login_resource_id
   create_options_method = true
+  depends_on            = [module.api_gateway]  
 }
 
 # For /v1/stocks
@@ -110,6 +112,7 @@ module "cors_stocks" {
   rest_api_id           = module.api_gateway.api_id
   resource_id           = module.api_gateway.stocks_resource_id
   create_options_method = true
+  depends_on            = [module.api_gateway]  
 }
 
 # For /v1/wishlist
@@ -118,6 +121,7 @@ module "cors_wishlist" {
   rest_api_id           = module.api_gateway.api_id
   resource_id           = module.api_gateway.wishlist_resource_id
   create_options_method = true
+  depends_on            = [module.api_gateway]  
 }
 
 # ─────────────────────────────────────────────
@@ -133,7 +137,7 @@ module "amplify" {
   cognito_client_id    = module.cognito.client_id
   region               = var.region
 
-  depends_on = [
+  depends_on = [                        
     module.cors_v1_proxy,
     module.cors_login,
     module.cors_stocks,
