@@ -1,6 +1,6 @@
 variable "use_public_subnet_for_rds" {
   type    = bool
-  default = true
+  default = false
 }
 
 variable "public_subnet_ids" {
