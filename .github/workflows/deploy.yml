@@ -113,7 +113,7 @@ jobs:
         working-directory: terraform
         run: |
           cat <<EOF > terraform.tfvars
-          use_public_subnet_for_rds = true
+          use_public_subnet_for_rds = false
           public_subnet_ids = ${PUBLIC_SUBNET_IDS}
           db_username = "${DB_USER}"
           db_password = "${DB_PASSWORD}"
