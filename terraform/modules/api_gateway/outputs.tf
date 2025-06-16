@@ -37,3 +37,8 @@ output "stage_name" {
   description = "Stage name used in deployment"
   value       = aws_api_gateway_stage.api_stage.stage_name
 }
+
+output "root_resource_id" {
+  description = "Resource ID for root path /"
+  value       = aws_api_gateway_rest_api.api.root_resource_id
+}
