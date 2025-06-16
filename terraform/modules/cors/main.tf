@@ -77,6 +77,8 @@ resource "aws_api_gateway_integration_response" "options_integration_response" {
   }
 
   depends_on = [
-    aws_api_gateway_method_response.options_response
+    aws_api_gateway_method_response.options_response,
+    aws_api_gateway_integration.options_mock  
   ]
 }
+
