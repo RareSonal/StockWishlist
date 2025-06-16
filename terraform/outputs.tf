@@ -30,3 +30,8 @@ output "cognito_user_pool_id" {
 output "cognito_client_id" {
   value = module.cognito.client_id
 }
+
+output "root_resource_id" {
+  value = module.api_gateway.root_resource_id
+}
+
