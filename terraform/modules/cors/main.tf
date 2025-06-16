@@ -6,7 +6,7 @@ resource "aws_api_gateway_method" "options" {
   authorization = "NONE"
 
   lifecycle {
-    prevent_destroy = true
+    create_before_destroy = true
   }
 }
 
@@ -23,8 +23,7 @@ resource "aws_api_gateway_integration" "options_mock" {
   }
 
   lifecycle {
-    prevent_destroy = true
-    ignore_changes = [request_templates]
+    create_before_destroy = true
   }
 }
 
@@ -47,8 +46,7 @@ resource "aws_api_gateway_method_response" "options_response" {
   }
 
   lifecycle {
-    prevent_destroy = true
-    ignore_changes = [response_parameters]
+    create_before_destroy = true
   }
 }
 
@@ -66,12 +64,7 @@ resource "aws_api_gateway_integration_response" "options_integration_response" {
     "method.response.header.Access-Control-Max-Age"       = "'3600'"
   }
 
-  response_templates = {
-    "application/json" = ""
-  }
-
   lifecycle {
-    prevent_destroy = true
-    ignore_changes = [response_parameters, response_templates]
+    create_before_destroy = true
   }
 }
