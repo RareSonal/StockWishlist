@@ -85,22 +85,16 @@ export default {
         const user = await Auth.signIn(email, password);
         this.storeTokens(user);
       } catch (err) {
-        // First attempt failed – possibly because user migration is needed
         if (
           err.code === "UserNotFoundException" ||
           err.code === "NotAuthorizedException"
         ) {
           console.warn("User may be migrating. Retrying after 1s...");
           await new Promise(resolve => setTimeout(resolve, 1000));
-
-          try {
-            const retryUser = await Auth.signIn(email, password);
-            this.storeTokens(retryUser);
-          } catch (retryError) {
-            throw retryError; // Let outer handler display error
-          }
+          const retryUser = await Auth.signIn(email, password);
+          this.storeTokens(retryUser);
         } else {
-          throw err; // Immediate throw for non-migration issues
+          throw err;
         }
       }
     },
@@ -114,3 +108,5 @@ export default {
   }
 };
 </script>
+
+
