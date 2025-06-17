@@ -115,7 +115,7 @@ resource "aws_lambda_function" "flask_backend" {
 resource "aws_lambda_function" "user_migration" {
   function_name = "user-migration-lambda"
   role          = aws_iam_role.lambda_exec.arn
-  handler       = "user_migration.handler"
+  handler       = "user_migration.migrate_user"
   runtime       = "python3.12"
   filename      = data.archive_file.user_migration.output_path
   source_code_hash = data.archive_file.user_migration.output_base64sha256
