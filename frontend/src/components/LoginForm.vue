@@ -42,6 +42,8 @@
 </template>
 
 <script>
+import { Auth } from 'aws-amplify';
+
 export default {
   name: "LoginForm",
   data() {
@@ -66,41 +68,48 @@ export default {
       }
 
       try {
-        const response = await fetch(`${process.env.VUE_APP_API_BASE}/v1/login`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            username: this.email,
-            password: this.password
-          })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          this.errorMessage = data.error || "Login failed. Please try again.";
-          this.loading = false;
-          return;
-        }
-
+        await this.trySignIn(this.email, this.password);
         this.successMessage = "Login successful!";
-
-        // Store tokens
-        localStorage.setItem("id_token", data.id_token);
-        localStorage.setItem("access_token", data.access_token);
-        if (data.refresh_token) {
-          localStorage.setItem("refresh_token", data.refresh_token);
-        }
-
         this.$router.push("/wishlist");
       } catch (error) {
-        console.error("Login error:", error);
-        this.errorMessage = "An unexpected error occurred.";
+        console.error("Login failed:", error);
+        this.errorMessage =
+          error.message || "Login failed. Please check your credentials.";
       } finally {
         this.loading = false;
       }
+    },
+
+    async trySignIn(email, password) {
+      try {
+        const user = await Auth.signIn(email, password);
+        this.storeTokens(user);
+      } catch (err) {
+        // First attempt failed – possibly because user migration is needed
+        if (
+          err.code === "UserNotFoundException" ||
+          err.code === "NotAuthorizedException"
+        ) {
+          console.warn("User may be migrating. Retrying after 1s...");
+          await new Promise(resolve => setTimeout(resolve, 1000));
+
+          try {
+            const retryUser = await Auth.signIn(email, password);
+            this.storeTokens(retryUser);
+          } catch (retryError) {
+            throw retryError; // Let outer handler display error
+          }
+        } else {
+          throw err; // Immediate throw for non-migration issues
+        }
+      }
+    },
+
+    storeTokens(user) {
+      const session = user.signInUserSession;
+      localStorage.setItem("id_token", session.idToken.jwtToken);
+      localStorage.setItem("access_token", session.accessToken.jwtToken);
+      localStorage.setItem("refresh_token", session.refreshToken.token);
     }
   }
 };
