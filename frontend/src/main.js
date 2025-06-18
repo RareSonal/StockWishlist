@@ -21,8 +21,8 @@ Amplify.configure({
           const token = session.getIdToken().getJwtToken();
           return { Authorization: `Bearer ${token}` };
         } catch (err) {
-          console.warn("No auth session found:", err);
-          return {};
+          console.warn("[Amplify] No auth session found (user may not be logged in):", err.message || err);
+          return {}; // Empty header if user is not authenticated
         }
       }
     }))
