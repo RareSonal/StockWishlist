@@ -1,7 +1,7 @@
 import os
 import psycopg2
-import boto3
 from dotenv import load_dotenv
+import json
 
 load_dotenv()
 
@@ -14,72 +14,51 @@ db_config = {
     'port': os.getenv('DB_PORT', 5432)
 }
 
-# Cognito region (still from env, as region remains static in most deployments)
-COGNITO_REGION = os.getenv("COGNITO_REGION")
-
-client = boto3.client('cognito-idp', region_name=COGNITO_REGION)
 
 def get_db_connection():
     return psycopg2.connect(**db_config)
 
-def get_user_from_db(username):
+
+def get_user_by_email(email):
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT id, email, password FROM users WHERE username = %s", (username,))
+                cur.execute("SELECT id, email, password FROM users WHERE email = %s", (email,))
                 return cur.fetchone()
     except Exception as e:
-        print(f"[DB] Error fetching user {username}: {e}")
+        print(f"[DB] Error fetching user {email}: {e}")
         return None
 
-def migrate_user(event, context):
-    username = event['userName']
-    password = event['request']['password']
 
-    # 🔁 Get Cognito Pool ID from event payload
-    COGNITO_POOL_ID = event.get("userPoolId")
-    if not COGNITO_POOL_ID:
-        print("[Error] Missing Cognito User Pool ID in event payload.")
-        raise Exception("Missing Cognito User Pool ID.")
+def lambda_handler(event, context):
+    print("Received event:", json.dumps(event))
 
-    user = get_user_from_db(username)
+    email = event.get('userName')  # Cognito sends username, which in your case is the email
+    input_password = event['request'].get('password')
+
+    if not email or not input_password:
+        print("[Error] Missing email or password in request")
+        raise Exception("Missing email or password")
+
+    user = get_user_by_email(email)
     if not user:
-        print(f"[Error] User '{username}' not found in DB.")
+        print(f"[Error] User '{email}' not found in DB.")
         raise Exception("User not found")
 
-    user_id, email, stored_password = user
+    user_id, user_email, stored_password = user
 
-    if password != stored_password:
-        print(f"[Auth] Invalid password for user '{username}'.")
+    if stored_password != input_password:
+        print(f"[Auth] Invalid password for user '{email}'.")
         raise Exception("Invalid credentials")
 
-    try:
-        # Step 1: Create user without sending welcome email
-        client.admin_create_user(
-            UserPoolId=COGNITO_POOL_ID,
-            Username=username,
-            UserAttributes=[
-                {'Name': 'email', 'Value': email},
-                {'Name': 'email_verified', 'Value': 'true'}
-            ],
-            MessageAction='SUPPRESS'
-        )
+    print(f"[Success] User '{email}' authenticated and ready for migration.")
 
-        # Step 2: Set permanent password
-        client.admin_set_user_password(
-            UserPoolId=COGNITO_POOL_ID,
-            Username=username,
-            Password=password,
-            Permanent=True
-        )
-
-        print(f"[Success] User '{username}' migrated to Cognito.")
-        return event
-
-    except client.exceptions.UsernameExistsException:
-        print(f"[Info] User '{username}' already exists in Cognito. Skipping.")
-        return event
-
-    except Exception as e:
-        print(f"[Error] Failed to migrate user '{username}': {e}")
-        raise
+    return {
+        "userAttributes": {
+            "email": user_email
+        },
+        "finalUserStatus": "CONFIRMED",
+        "messageAction": "SUPPRESS",
+        "desiredDeliveryMediums": ["EMAIL"],
+        "forceAliasCreation": False
+    }
