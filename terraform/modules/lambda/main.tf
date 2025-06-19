@@ -41,7 +41,10 @@ resource "aws_iam_policy" "lambda_cognito_policy" {
         "cognito-idp:AdminCreateUser",
         "cognito-idp:AdminSetUserPassword",
         "cognito-idp:AdminAddUserToGroup",
-        "cognito-idp:AdminInitiateAuth"
+        "cognito-idp:AdminInitiateAuth",
+        "cognito-idp:AdminRespondToAuthChallenge",
+        "cognito-idp:AdminGetUser",
+        "cognito-idp:ListUsers"
       ],
       Resource = "*"
     }]
