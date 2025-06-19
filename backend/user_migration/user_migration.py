@@ -33,7 +33,7 @@ def get_user_by_email(email):
 def lambda_handler(event, context):
     print("Received event:", json.dumps(event))
 
-    email = event.get('userName')  # Cognito sends username, which in your case is the email
+    email = event.get('userName')
     input_password = event['request'].get('password')
 
     print(f"Raw email input: '{email}'")
@@ -59,12 +59,15 @@ def lambda_handler(event, context):
 
     print(f"[Success] User '{email}' authenticated and ready for migration.")
 
-    return {
+    event['response'] = {
         "userAttributes": {
-            "email": user_email
+            "email": user_email,
+            "email_verified": "true"  # optional but useful
         },
         "finalUserStatus": "CONFIRMED",
         "messageAction": "SUPPRESS",
         "desiredDeliveryMediums": ["EMAIL"],
         "forceAliasCreation": False
     }
+
+    return event
