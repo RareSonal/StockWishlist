@@ -9,7 +9,7 @@ resource "aws_iam_role" "lambda_exec" {
     Statement = [{
       Effect = "Allow",
       Principal = { Service = "lambda.amazonaws.com" },
-      Action = "sts:AssumeRole"
+      Action   = "sts:AssumeRole"
     }]
   })
 }
@@ -17,6 +17,11 @@ resource "aws_iam_role" "lambda_exec" {
 resource "aws_iam_role_policy_attachment" "lambda_logging" {
   role       = aws_iam_role.lambda_exec.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_vpc_access" {
+  role       = aws_iam_role.lambda_exec.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
 resource "aws_iam_policy_attachment" "lambda_ssm" {
@@ -130,11 +135,11 @@ resource "aws_lambda_function" "user_migration" {
 
   environment {
     variables = {
-      DB_HOST              = var.db_host
-      DB_USER              = var.db_username
-      DB_PASSWORD          = var.db_password
-      DB_NAME              = var.db_name
-      COGNITO_REGION       = var.region
+      DB_HOST        = var.db_host
+      DB_USER        = var.db_username
+      DB_PASSWORD    = var.db_password
+      DB_NAME        = var.db_name
+      COGNITO_REGION = var.region
     }
   }
 }
@@ -164,3 +169,4 @@ resource "aws_lambda_function" "seed_db_lambda" {
     }
   }
 }
+
