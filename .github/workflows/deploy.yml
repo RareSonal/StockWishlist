@@ -220,15 +220,20 @@ jobs:
           AWS_REGION: us-east-1
           LAMBDA_FUNCTION_NAME: user-migration-lambda
         run: |
-          echo "{
-            \"userName\": \"zoe.carter6565@example.com\",
-            \"request\": {
-              \"password\": \"CC777$YCC77\"
+          echo '{
+            "version": "1",
+            "triggerSource": "UserMigration_Authentication",
+            "userName": "zoe.carter6565@example.com",
+            "userPoolId": "${{ secrets.COGNITO_USER_POOL_ID }}",
+            "request": {
+              "password": "CC777$YCC77",
+              "validationData": {}
             },
-            \"userPoolId\": \"${{ secrets.COGNITO_USER_POOL_ID }}\"
-          }" > user_migration_payload.json
+            "response": {}
+          }' > user_migration_payload.json
 
           echo "📨 Invoking user-migration Lambda with dry-run payload..."
+
           aws lambda invoke \
             --function-name "$LAMBDA_FUNCTION_NAME" \
             --region "$AWS_REGION" \
@@ -237,7 +242,6 @@ jobs:
 
           echo "📄 Lambda response:"
           cat migration_response.json
-
 
       - name: 🕵️ Verify Database Tables and Sample Data via Lambda
         env:
