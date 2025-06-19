@@ -36,11 +36,17 @@ def lambda_handler(event, context):
     email = event.get('userName')  # Cognito sends username, which in your case is the email
     input_password = event['request'].get('password')
 
+    print(f"Raw email input: '{email}'")
+    print(f"Password input: '{input_password}'")
+
     if not email or not input_password:
         print("[Error] Missing email or password in request")
         raise Exception("Missing email or password")
 
     user = get_user_by_email(email)
+
+    print(f"DB result for '{email}': {user}")  
+    
     if not user:
         print(f"[Error] User '{email}' not found in DB.")
         raise Exception("User not found")
