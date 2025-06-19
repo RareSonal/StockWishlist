@@ -221,9 +221,9 @@ jobs:
           LAMBDA_FUNCTION_NAME: user-migration-lambda
         run: |
           echo "{
-            \"userName\": \"testuser\",
+            \"userName\": \"zoe.carter6565@example.com\",
             \"request\": {
-              \"password\": \"testpassword\"
+              \"password\": \"CC777$YCC77\"
             },
             \"userPoolId\": \"${{ secrets.COGNITO_USER_POOL_ID }}\"
           }" > user_migration_payload.json
