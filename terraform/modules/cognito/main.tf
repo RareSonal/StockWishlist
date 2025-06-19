@@ -19,7 +19,7 @@ resource "aws_cognito_user_pool_client" "user_pool_client" {
     "ALLOW_USER_SRP_AUTH"
   ]
 
-  prevent_user_existence_errors = "DISABLED"
+  prevent_user_existence_errors = "LEGACY"
 }
 
 data "aws_caller_identity" "current" {}
