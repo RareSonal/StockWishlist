@@ -23,7 +23,7 @@ def get_user_by_email(email):
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT id, email, password FROM users WHERE email = %s", (email,))
+                cur.execute("SELECT id, email, password FROM users WHERE LOWER(email) = LOWER(%s)", (email,))
                 return cur.fetchone()
     except Exception as e:
         print(f"[DB] Error fetching user {email}: {e}")
