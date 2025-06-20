@@ -155,7 +155,7 @@ resource "aws_api_gateway_integration" "wishlist_integrations" {
   uri                     = var.lambda_invoke_arn
 }
 
-# ────────────────────────────────
+────────────────────────────────
 # Deployment & Stage
 # ────────────────────────────────
 resource "aws_api_gateway_deployment" "api_deployment" {
@@ -170,31 +170,25 @@ depends_on = [
   aws_api_gateway_integration.login_post,
   aws_api_gateway_integration.stocks_integrations,
   aws_api_gateway_integration.wishlist_integrations,
-
-  module.cors_root,
-  module.cors_v1_proxy,
-  module.cors_login,
-  module.cors_stocks,
-  module.cors_wishlist,
 ]
 
 
 rest_api_id = aws_api_gateway_rest_api.api.id
 
 triggers = {
-    redeployment = sha1(jsonencode([
-      aws_api_gateway_method.root_get.id,
-      aws_api_gateway_integration.root_get.id,
-      aws_api_gateway_method.any_proxy.id,
-      aws_api_gateway_integration.any_proxy.id,
-      aws_api_gateway_method.login_post.id,
-      aws_api_gateway_integration.login_post.id,
-      values(aws_api_gateway_method.stocks_methods)[*].id,
-      values(aws_api_gateway_integration.stocks_integrations)[*].id,
-      values(aws_api_gateway_method.wishlist_methods)[*].id,
-      values(aws_api_gateway_integration.wishlist_integrations)[*].id,
-    ]))
-  }
+  redeployment = sha1(jsonencode(flatten([
+    aws_api_gateway_method.root_get.id,
+    aws_api_gateway_integration.root_get.id,
+    aws_api_gateway_method.any_proxy.id,
+    aws_api_gateway_integration.any_proxy.id,
+    aws_api_gateway_method.login_post.id,
+    aws_api_gateway_integration.login_post.id,
+    [for m in aws_api_gateway_method.stocks_methods : m.id],
+    [for i in aws_api_gateway_integration.stocks_integrations : i.id],
+    [for m in aws_api_gateway_method.wishlist_methods : m.id],
+    [for i in aws_api_gateway_integration.wishlist_integrations : i.id],
+    var.cors_trigger
+  ])))
 }
 
 resource "aws_api_gateway_stage" "api_stage" {
