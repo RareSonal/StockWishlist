@@ -83,7 +83,16 @@ module "api_gateway" {
   stage_name            = var.api_stage_name
   log_group_arn         = module.cloudwatch.api_log_group_arn
   region                = var.region
+
+  cors_trigger = sha1(jsonencode([
+    module.cors_v1_proxy,
+    module.cors_login,
+    module.cors_stocks,
+    module.cors_wishlist,
+    module.cors_root
+  ]))
 }
+
 
 # ─────────────────────────────────────────────
 # CORS CONFIGURATION MODULES
