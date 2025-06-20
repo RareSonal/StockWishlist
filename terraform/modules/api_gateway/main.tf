@@ -155,6 +155,45 @@ resource "aws_api_gateway_integration" "wishlist_integrations" {
   uri                     = var.lambda_invoke_arn
 }
 
+# ────────────────────────────────
+# Deployment & Stage
+# ────────────────────────────────
+resource "aws_api_gateway_deployment" "api_deployment" {
+depends_on = [
+  aws_api_gateway_method.root_get,
+  aws_api_gateway_method.any_proxy,
+  aws_api_gateway_method.login_post,
+  aws_api_gateway_method.stocks_methods,
+  aws_api_gateway_method.wishlist_methods,
+  aws_api_gateway_integration.root_get,
+  aws_api_gateway_integration.any_proxy,
+  aws_api_gateway_integration.login_post,
+  aws_api_gateway_integration.stocks_integrations,
+  aws_api_gateway_integration.wishlist_integrations,
+]
+
+rest_api_id = aws_api_gateway_rest_api.api.id
+
+triggers = {
+      redeployment = sha1(jsonencode([
+      aws_api_gateway_method.root_get.id,
+      aws_api_gateway_method.any_proxy.id,
+      aws_api_gateway_method.login_post.id,
+      values(aws_api_gateway_method.stocks_methods)[*].id,
+      values(aws_api_gateway_method.wishlist_methods)[*].id,
+    ]))
+  }
+}
+
+resource "aws_api_gateway_stage" "api_stage" {
+  deployment_id = aws_api_gateway_deployment.api_deployment.id
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  stage_name = var.stage_name
+
+  lifecycle {
+  create_before_destroy = true
+  }
+}
 
 # ────────────────────────────────
 # Lambda Permission for API Gateway
