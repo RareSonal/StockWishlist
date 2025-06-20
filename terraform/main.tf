@@ -156,34 +156,3 @@ module "amplify" {
   ]
 }
 
-# ─────────────────────────────────────────────
-# FINAL API GATEWAY DEPLOYMENT & STAGE
-# ─────────────────────────────────────────────
-
-resource "aws_api_gateway_deployment" "api_deployment" {
-  depends_on = [
-    module.api_gateway,
-    module.cors_root,
-    module.cors_v1_proxy,
-    module.cors_login,
-    module.cors_stocks,
-    module.cors_wishlist
-  ]
-
-  rest_api_id = module.api_gateway.api_id
-
-  triggers = {
-    redeployment = timestamp()
-  }
-}
-
-resource "aws_api_gateway_stage" "api_stage" {
-  deployment_id = aws_api_gateway_deployment.api_deployment.id
-  rest_api_id   = module.api_gateway.api_id
-  stage_name    = var.api_stage_name
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
