@@ -77,6 +77,16 @@ module "api_gateway" {
   stage_name            = var.api_stage_name
   log_group_arn         = module.cloudwatch.api_log_group_arn
   region                = var.region
+
+  include_cors = true
+
+  cors_integration_ids = [
+    module.cors_root.options_integration_id,
+    module.cors_v1_proxy.options_integration_id,
+    module.cors_login.options_integration_id,
+    module.cors_stocks.options_integration_id,
+    module.cors_wishlist.options_integration_id,
+  ]
 }
 
 # ─────────────────────────────────────────────
@@ -89,6 +99,7 @@ module "cors_root" {
   create_options_method = true
   depends_on            = [module.api_gateway]
 }
+
 module "cors_v1_proxy" {
   source                = "./modules/cors"
   rest_api_id           = module.api_gateway.api_id
@@ -96,6 +107,7 @@ module "cors_v1_proxy" {
   create_options_method = true
   depends_on            = [module.api_gateway]
 }
+
 module "cors_login" {
   source                = "./modules/cors"
   rest_api_id           = module.api_gateway.api_id
@@ -103,6 +115,7 @@ module "cors_login" {
   create_options_method = true
   depends_on            = [module.api_gateway]
 }
+
 module "cors_stocks" {
   source                = "./modules/cors"
   rest_api_id           = module.api_gateway.api_id
@@ -110,6 +123,7 @@ module "cors_stocks" {
   create_options_method = true
   depends_on            = [module.api_gateway]
 }
+
 module "cors_wishlist" {
   source                = "./modules/cors"
   rest_api_id           = module.api_gateway.api_id
