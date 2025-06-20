@@ -170,7 +170,14 @@ depends_on = [
   aws_api_gateway_integration.login_post,
   aws_api_gateway_integration.stocks_integrations,
   aws_api_gateway_integration.wishlist_integrations,
+
+  module.cors_root,
+  module.cors_v1_proxy,
+  module.cors_login,
+  module.cors_stocks,
+  module.cors_wishlist,
 ]
+
 
 rest_api_id = aws_api_gateway_rest_api.api.id
 
