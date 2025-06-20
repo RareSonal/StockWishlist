@@ -78,6 +78,7 @@ module "cloudwatch" {
 module "api_gateway" {
   source                = "./modules/api_gateway"
   lambda_invoke_arn     = module.lambda.lambda_invoke_arn
+  lambda_function_name  = module.lambda.lambda_function_name
   cognito_user_pool_arn = module.cognito.user_pool_arn
   stage_name            = var.api_stage_name
   log_group_arn         = module.cloudwatch.api_log_group_arn
