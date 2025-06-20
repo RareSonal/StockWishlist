@@ -25,9 +25,4 @@ variable "lambda_function_name" {
   type        = string
 }
 
-variable "cors_trigger" {
-  description = "A dummy trigger to force redeployment when CORS changes"
-  type        = string
-  default     = ""
-}
 
