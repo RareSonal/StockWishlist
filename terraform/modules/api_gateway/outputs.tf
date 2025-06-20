@@ -32,3 +32,13 @@ output "root_resource_id" {
   description = "Resource ID for root path /"
   value       = aws_api_gateway_rest_api.api.root_resource_id
 }
+
+output "deployment_id" {
+description = "Deployment ID of the API Gateway"
+value = aws_api_gateway_deployment.api_deployment.id
+}
+
+output "stage_name" {
+description = "Stage name used in deployment"
+value = aws_api_gateway_stage.api_stage.stage_name
+}
