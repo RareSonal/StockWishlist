@@ -54,7 +54,7 @@ resource "aws_api_gateway_authorizer" "cognito_auth" {
 }
 
 # ────────────────────────────────
-# Root GET (Public)
+# Root GET method (no auth)
 # ────────────────────────────────
 resource "aws_api_gateway_method" "root_get" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
@@ -73,7 +73,7 @@ resource "aws_api_gateway_integration" "root_get" {
 }
 
 # ────────────────────────────────
-# ANY Proxy under /v1 (Cognito-protected)
+# /v1/{proxy+} ANY method (Cognito-protected)
 # ────────────────────────────────
 resource "aws_api_gateway_method" "any_proxy" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
@@ -112,7 +112,7 @@ resource "aws_api_gateway_integration" "login_post" {
 }
 
 # ────────────────────────────────
-# /v1/stocks: GET, POST (Cognito-protected)
+# /v1/stocks - GET, POST (Cognito-protected)
 # ────────────────────────────────
 resource "aws_api_gateway_method" "stocks_methods" {
   for_each      = toset(["GET", "POST"])
@@ -134,7 +134,7 @@ resource "aws_api_gateway_integration" "stocks_integrations" {
 }
 
 # ────────────────────────────────
-# /v1/wishlist: GET, POST, DELETE (Cognito-protected)
+# /v1/wishlist - GET, POST, DELETE (Cognito-protected)
 # ────────────────────────────────
 resource "aws_api_gateway_method" "wishlist_methods" {
   for_each      = toset(["GET", "POST", "DELETE"])
@@ -158,19 +158,27 @@ resource "aws_api_gateway_integration" "wishlist_integrations" {
 # ────────────────────────────────
 # Deployment & Stage
 # ────────────────────────────────
+
 resource "aws_api_gateway_deployment" "api_deployment" {
-  depends_on = [
+  depends_on = concat([
     aws_api_gateway_method.root_get,
     aws_api_gateway_method.any_proxy,
     aws_api_gateway_method.login_post,
-    aws_api_gateway_method.stocks_methods,
-    aws_api_gateway_method.wishlist_methods,
+  ], [
+    for m in aws_api_gateway_method.stocks_methods : m,
+  ], [
+    for m in aws_api_gateway_method.wishlist_methods : m,
+  ], [
     aws_api_gateway_integration.root_get,
     aws_api_gateway_integration.any_proxy,
     aws_api_gateway_integration.login_post,
-    aws_api_gateway_integration.stocks_integrations,
-    aws_api_gateway_integration.wishlist_integrations,
-  ]
+  ], [
+    for i in aws_api_gateway_integration.stocks_integrations : i,
+  ], [
+    for i in aws_api_gateway_integration.wishlist_integrations : i,
+  ], 
+  var.include_cors ? var.cors_integration_ids : []
+  )
 
   rest_api_id = aws_api_gateway_rest_api.api.id
 
@@ -186,6 +194,7 @@ resource "aws_api_gateway_deployment" "api_deployment" {
       [for i in aws_api_gateway_integration.stocks_integrations : i.id],
       [for m in aws_api_gateway_method.wishlist_methods : m.id],
       [for i in aws_api_gateway_integration.wishlist_integrations : i.id],
+      var.include_cors ? var.cors_integration_ids : []
     ])))
   }
 }
@@ -230,3 +239,4 @@ resource "aws_lambda_permission" "apigw_to_lambda" {
 
   depends_on = [aws_api_gateway_rest_api.api]
 }
+
