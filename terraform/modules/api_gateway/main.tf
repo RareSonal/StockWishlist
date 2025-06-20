@@ -155,7 +155,7 @@ resource "aws_api_gateway_integration" "wishlist_integrations" {
   uri                     = var.lambda_invoke_arn
 }
 
-────────────────────────────────
+# ────────────────────────────────
 # Deployment & Stage
 # ────────────────────────────────
 resource "aws_api_gateway_deployment" "api_deployment" {
