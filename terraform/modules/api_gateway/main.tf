@@ -175,23 +175,46 @@ depends_on = [
 rest_api_id = aws_api_gateway_rest_api.api.id
 
 triggers = {
-      redeployment = sha1(jsonencode([
+    redeployment = sha1(jsonencode([
       aws_api_gateway_method.root_get.id,
+      aws_api_gateway_integration.root_get.id,
       aws_api_gateway_method.any_proxy.id,
+      aws_api_gateway_integration.any_proxy.id,
       aws_api_gateway_method.login_post.id,
+      aws_api_gateway_integration.login_post.id,
       values(aws_api_gateway_method.stocks_methods)[*].id,
+      values(aws_api_gateway_integration.stocks_integrations)[*].id,
       values(aws_api_gateway_method.wishlist_methods)[*].id,
+      values(aws_api_gateway_integration.wishlist_integrations)[*].id,
     ]))
   }
 }
 
 resource "aws_api_gateway_stage" "api_stage" {
   deployment_id = aws_api_gateway_deployment.api_deployment.id
-  rest_api_id = aws_api_gateway_rest_api.api.id
-  stage_name = var.stage_name
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  stage_name    = var.stage_name
+
+  xray_tracing_enabled = true
+
+  access_log_settings {
+    destination_arn = var.log_group_arn
+    format = jsonencode({
+      requestId       = "$context.requestId",
+      ip              = "$context.identity.sourceIp",
+      caller          = "$context.identity.caller",
+      user            = "$context.identity.user",
+      requestTime     = "$context.requestTime",
+      httpMethod      = "$context.httpMethod",
+      resourcePath    = "$context.resourcePath",
+      status          = "$context.status",
+      protocol        = "$context.protocol",
+      responseLength  = "$context.responseLength"
+    })
+  }
 
   lifecycle {
-  create_before_destroy = true
+    create_before_destroy = true
   }
 }
 
