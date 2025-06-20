@@ -10,16 +10,18 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from functools import wraps
 from dotenv import load_dotenv
+import awsgi  # Lambda + Flask adapter
 
-# Load env vars
+# Load environment variables
 load_dotenv()
 
-# --- Config ---
+# --- Flask App Setup ---
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.INFO)
 
+# --- Configuration ---
 db_config = {
     'host': os.getenv('DB_HOST'),
     'dbname': os.getenv('DB_NAME'),
@@ -33,7 +35,7 @@ COGNITO_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
 COGNITO_APP_CLIENT_ID = os.getenv("COGNITO_APP_CLIENT_ID")
 JWKS_URL = f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_POOL_ID}/.well-known/jwks.json"
 
-# --- DB Utilities ---
+# --- Database Utilities ---
 def get_db_connection():
     try:
         return psycopg2.connect(**db_config)
@@ -239,3 +241,6 @@ def remove_from_wishlist():
 def catch_all_options(path):
     return '', 204
 
+# --- Lambda Entry Point ---
+def handler(event, context):
+    return awsgi.response(app, event, context)
