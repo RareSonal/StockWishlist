@@ -127,7 +127,7 @@ resource "aws_api_gateway_integration" "stocks_integrations" {
   for_each                = aws_api_gateway_method.stocks_methods
   rest_api_id             = aws_api_gateway_rest_api.api.id
   resource_id             = aws_api_gateway_resource.stocks.id
-  http_method             = each.key
+  http_method             = each.value.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = var.lambda_invoke_arn
@@ -149,7 +149,7 @@ resource "aws_api_gateway_integration" "wishlist_integrations" {
   for_each                = aws_api_gateway_method.wishlist_methods
   rest_api_id             = aws_api_gateway_rest_api.api.id
   resource_id             = aws_api_gateway_resource.wishlist.id
-  http_method             = each.key
+  http_method             = each.value.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = var.lambda_invoke_arn
