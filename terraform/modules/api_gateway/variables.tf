@@ -1,28 +1,36 @@
 variable "cognito_user_pool_arn" {
-  type = string
+  description = "ARN of the Cognito User Pool for authorizing API Gateway requests"
+  type        = string
 }
 
 variable "lambda_invoke_arn" {
-  type = string
+  description = "ARN of the Lambda function to be invoked by API Gateway"
+  type        = string
 }
 
 variable "stage_name" {
-  type    = string
-  default = "prod"
+  description = "API Gateway stage name"
+  type        = string
+  default     = "prod"
 }
 
 variable "log_group_arn" {
-  type = string
+  description = "ARN of the CloudWatch log group for API Gateway access logs"
+  type        = string
 }
 
 variable "region" {
-  description = "AWS region"
+  description = "AWS region where resources are deployed"
   type        = string
 }
 
 variable "lambda_function_name" {
-  description = "Name of the Lambda function for API Gateway to invoke"
+  description = "Name of the Lambda function to invoke from API Gateway"
   type        = string
 }
 
-
+variable "cors_integration_ids" {
+  description = "List of API Gateway integration IDs for CORS OPTIONS methods; used to create deployment dependencies"
+  type        = list(string)
+  default     = []
+}
