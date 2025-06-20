@@ -42,3 +42,29 @@ output "stage_name" {
 description = "Stage name used in deployment"
 value = aws_api_gateway_stage.api_stage.stage_name
 }
+
+output "cors_root_options_integration_id" {
+  description = "Integration ID for CORS OPTIONS method on root resource"
+  value       = aws_api_gateway_integration.cors_root_options.id
+  # Replace 'aws_api_gateway_integration.cors_root_options' with your actual resource name
+}
+
+output "cors_v1_proxy_options_integration_id" {
+  description = "Integration ID for CORS OPTIONS method on /v1/{proxy+} resource"
+  value       = aws_api_gateway_integration.cors_v1_proxy_options.id
+}
+
+output "cors_login_options_integration_id" {
+  description = "Integration ID for CORS OPTIONS method on /v1/login resource"
+  value       = aws_api_gateway_integration.cors_login_options.id
+}
+
+output "cors_stocks_options_integration_id" {
+  description = "Integration ID for CORS OPTIONS method on /v1/stocks resource"
+  value       = aws_api_gateway_integration.cors_stocks_options.id
+}
+
+output "cors_wishlist_options_integration_id" {
+  description = "Integration ID for CORS OPTIONS method on /v1/wishlist resource"
+  value       = aws_api_gateway_integration.cors_wishlist_options.id
+}
