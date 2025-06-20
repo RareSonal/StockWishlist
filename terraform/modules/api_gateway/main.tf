@@ -54,7 +54,7 @@ resource "aws_api_gateway_authorizer" "cognito_auth" {
 }
 
 # ────────────────────────────────
-# Root GET method (no auth)
+# Root GET (Public)
 # ────────────────────────────────
 resource "aws_api_gateway_method" "root_get" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
@@ -73,7 +73,7 @@ resource "aws_api_gateway_integration" "root_get" {
 }
 
 # ────────────────────────────────
-# /v1/{proxy+} ANY method (Cognito-protected)
+# ANY Proxy under /v1 (Cognito-protected)
 # ────────────────────────────────
 resource "aws_api_gateway_method" "any_proxy" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
@@ -112,7 +112,7 @@ resource "aws_api_gateway_integration" "login_post" {
 }
 
 # ────────────────────────────────
-# /v1/stocks - GET, POST (Cognito-protected)
+# /v1/stocks: GET, POST (Cognito-protected)
 # ────────────────────────────────
 resource "aws_api_gateway_method" "stocks_methods" {
   for_each      = toset(["GET", "POST"])
@@ -134,7 +134,7 @@ resource "aws_api_gateway_integration" "stocks_integrations" {
 }
 
 # ────────────────────────────────
-# /v1/wishlist - GET, POST, DELETE (Cognito-protected)
+# /v1/wishlist: GET, POST, DELETE (Cognito-protected)
 # ────────────────────────────────
 resource "aws_api_gateway_method" "wishlist_methods" {
   for_each      = toset(["GET", "POST", "DELETE"])
@@ -186,10 +186,9 @@ resource "aws_api_gateway_deployment" "api_deployment" {
       [for i in aws_api_gateway_integration.stocks_integrations : i.id],
       [for m in aws_api_gateway_method.wishlist_methods : m.id],
       [for i in aws_api_gateway_integration.wishlist_integrations : i.id],
-      var.cors_trigger
     ])))
   }
-} 
+}
 
 resource "aws_api_gateway_stage" "api_stage" {
   deployment_id = aws_api_gateway_deployment.api_deployment.id
