@@ -1,4 +1,4 @@
-# Get current account details
+# Get current AWS account info
 data "aws_caller_identity" "current" {}
 
 # ────────────────────────────────
@@ -10,7 +10,7 @@ resource "aws_api_gateway_rest_api" "api" {
 }
 
 # ────────────────────────────────
-# Resources
+# API Resources
 # ────────────────────────────────
 resource "aws_api_gateway_resource" "v1" {
   rest_api_id = aws_api_gateway_rest_api.api.id
@@ -54,7 +54,7 @@ resource "aws_api_gateway_authorizer" "cognito_auth" {
 }
 
 # ────────────────────────────────
-# Root GET Method
+# Root GET method (no auth)
 # ────────────────────────────────
 resource "aws_api_gateway_method" "root_get" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
@@ -73,7 +73,7 @@ resource "aws_api_gateway_integration" "root_get" {
 }
 
 # ────────────────────────────────
-# /v1/{proxy+} - ANY method (Cognito Protected)
+# /v1/{proxy+} ANY method (Cognito-protected)
 # ────────────────────────────────
 resource "aws_api_gateway_method" "any_proxy" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
@@ -93,7 +93,7 @@ resource "aws_api_gateway_integration" "any_proxy" {
 }
 
 # ────────────────────────────────
-# /v1/login - POST (Public)
+# /v1/login POST (Public)
 # ────────────────────────────────
 resource "aws_api_gateway_method" "login_post" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
@@ -112,7 +112,7 @@ resource "aws_api_gateway_integration" "login_post" {
 }
 
 # ────────────────────────────────
-# /v1/stocks - GET, POST (Cognito)
+# /v1/stocks - GET, POST (Cognito-protected)
 # ────────────────────────────────
 resource "aws_api_gateway_method" "stocks_methods" {
   for_each      = toset(["GET", "POST"])
@@ -134,7 +134,7 @@ resource "aws_api_gateway_integration" "stocks_integrations" {
 }
 
 # ────────────────────────────────
-# /v1/wishlist - GET, POST, DELETE (Cognito)
+# /v1/wishlist - GET, POST, DELETE (Cognito-protected)
 # ────────────────────────────────
 resource "aws_api_gateway_method" "wishlist_methods" {
   for_each      = toset(["GET", "POST", "DELETE"])
@@ -169,7 +169,7 @@ resource "aws_api_gateway_deployment" "api_deployment" {
     aws_api_gateway_integration.any_proxy,
     aws_api_gateway_integration.login_post,
     aws_api_gateway_integration.stocks_integrations,
-    aws_api_gateway_integration.wishlist_integrations
+    aws_api_gateway_integration.wishlist_integrations,
   ]
 
   rest_api_id = aws_api_gateway_rest_api.api.id
@@ -180,7 +180,7 @@ resource "aws_api_gateway_deployment" "api_deployment" {
       aws_api_gateway_method.any_proxy.id,
       aws_api_gateway_method.login_post.id,
       values(aws_api_gateway_method.stocks_methods)[*].id,
-      values(aws_api_gateway_method.wishlist_methods)[*].id
+      values(aws_api_gateway_method.wishlist_methods)[*].id,
     ]))
   }
 }
