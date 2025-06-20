@@ -24,3 +24,10 @@ variable "lambda_function_name" {
   description = "Name of the Lambda function for API Gateway to invoke"
   type        = string
 }
+
+variable "cors_trigger" {
+  description = "A dummy trigger to force redeployment when CORS changes"
+  type        = string
+  default     = ""
+}
+
