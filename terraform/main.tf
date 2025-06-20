@@ -7,7 +7,6 @@ data "aws_caller_identity" "current" {}
 # ─────────────────────────────────────────────
 # SYSTEM CONFIGURATION MODULES
 # ─────────────────────────────────────────────
-
 module "ssm_parameters" {
   source             = "./modules/ssm_parameters"
   github_oauth_token = var.github_oauth_token
@@ -23,7 +22,6 @@ module "security_groups" {
 # ─────────────────────────────────────────────
 # DATABASE MODULE
 # ─────────────────────────────────────────────
-
 module "rds" {
   source                    = "./modules/rds"
   db_username               = var.db_username
@@ -36,7 +34,6 @@ module "rds" {
 # ─────────────────────────────────────────────
 # BACKEND: LAMBDA MODULE
 # ─────────────────────────────────────────────
-
 module "lambda" {
   source       = "./modules/lambda"
   subnet_ids   = var.public_subnet_ids
@@ -52,7 +49,6 @@ module "lambda" {
 # ─────────────────────────────────────────────
 # AUTHENTICATION: COGNITO MODULE
 # ─────────────────────────────────────────────
-
 module "cognito" {
   source                    = "./modules/cognito"
   user_migration_lambda_arn = module.lambda.user_migration_lambda_arn
@@ -62,7 +58,6 @@ module "cognito" {
 # ─────────────────────────────────────────────
 # MONITORING: CLOUDWATCH MODULE
 # ─────────────────────────────────────────────
-
 module "cloudwatch" {
   source               = "./modules/cloudwatch"
   lambda_function_name = module.lambda.lambda_function_name
@@ -74,7 +69,6 @@ module "cloudwatch" {
 # ─────────────────────────────────────────────
 # API GATEWAY MODULE
 # ─────────────────────────────────────────────
-
 module "api_gateway" {
   source                = "./modules/api_gateway"
   lambda_invoke_arn     = module.lambda.lambda_invoke_arn
@@ -83,22 +77,11 @@ module "api_gateway" {
   stage_name            = var.api_stage_name
   log_group_arn         = module.cloudwatch.api_log_group_arn
   region                = var.region
-
-  cors_trigger = sha1(jsonencode([
-    module.cors_v1_proxy,
-    module.cors_login,
-    module.cors_stocks,
-    module.cors_wishlist,
-    module.cors_root
-  ]))
 }
-
 
 # ─────────────────────────────────────────────
 # CORS CONFIGURATION MODULES
 # ─────────────────────────────────────────────
-
-# For /
 module "cors_root" {
   source                = "./modules/cors"
   rest_api_id           = module.api_gateway.api_id
@@ -106,47 +89,38 @@ module "cors_root" {
   create_options_method = true
   depends_on            = [module.api_gateway]
 }
-
-# For /v1/{proxy+}
 module "cors_v1_proxy" {
   source                = "./modules/cors"
   rest_api_id           = module.api_gateway.api_id
   resource_id           = module.api_gateway.proxy_resource_id
   create_options_method = true
-  depends_on            = [module.api_gateway]  
+  depends_on            = [module.api_gateway]
 }
-
-# For /v1/login
 module "cors_login" {
   source                = "./modules/cors"
   rest_api_id           = module.api_gateway.api_id
   resource_id           = module.api_gateway.login_resource_id
   create_options_method = true
-  depends_on            = [module.api_gateway]  
+  depends_on            = [module.api_gateway]
 }
-
-# For /v1/stocks
 module "cors_stocks" {
   source                = "./modules/cors"
   rest_api_id           = module.api_gateway.api_id
   resource_id           = module.api_gateway.stocks_resource_id
   create_options_method = true
-  depends_on            = [module.api_gateway]  
+  depends_on            = [module.api_gateway]
 }
-
-# For /v1/wishlist
 module "cors_wishlist" {
   source                = "./modules/cors"
   rest_api_id           = module.api_gateway.api_id
   resource_id           = module.api_gateway.wishlist_resource_id
   create_options_method = true
-  depends_on            = [module.api_gateway]  
+  depends_on            = [module.api_gateway]
 }
 
 # ─────────────────────────────────────────────
 # FRONTEND DEPLOYMENT: AMPLIFY MODULE
 # ─────────────────────────────────────────────
-
 module "amplify" {
   source               = "./modules/amplify"
   github_oauth_token   = var.github_oauth_token
@@ -156,12 +130,12 @@ module "amplify" {
   cognito_client_id    = module.cognito.client_id
   region               = var.region
 
-  depends_on = [                        
+  depends_on = [
+    module.api_gateway,
+    module.cors_root,
     module.cors_v1_proxy,
     module.cors_login,
     module.cors_stocks,
-    module.cors_wishlist,
-    module.cors_root
+    module.cors_wishlist
   ]
 }
-
