@@ -35,4 +35,11 @@ variable "cors_integration_ids" {
   default     = []
 }
 
+variable "include_cors" {
+  description = "Whether to include CORS integration IDs in deployment triggers"
+  type        = bool
+  default     = false
+}
+
+
 
