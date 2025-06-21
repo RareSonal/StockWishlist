@@ -29,17 +29,7 @@ variable "lambda_function_name" {
   type        = string
 }
 
-variable "cors_integration_ids" {
-  description = "List of API Gateway integration IDs for CORS OPTIONS methods; used to create deployment dependencies"
-  type        = list(string)
-  default     = []
-}
 
-variable "include_cors" {
-  description = "Whether to include CORS integration IDs in deployment triggers"
-  type        = bool
-  default     = false
-}
 
 
 
