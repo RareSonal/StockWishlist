@@ -160,6 +160,8 @@ resource "aws_api_gateway_integration" "wishlist_integrations" {
 # ────────────────────────────────
 
 resource "aws_api_gateway_deployment" "api_deployment" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+
   depends_on = [
     aws_api_gateway_method.root_get,
     aws_api_gateway_method.any_proxy,
@@ -167,38 +169,39 @@ resource "aws_api_gateway_deployment" "api_deployment" {
     aws_api_gateway_integration.root_get,
     aws_api_gateway_integration.any_proxy,
     aws_api_gateway_integration.login_post,
-    aws_api_gateway_method.stocks_methods["GET"],
-    aws_api_gateway_method.stocks_methods["POST"],
-    aws_api_gateway_integration.stocks_integrations["GET"],
-    aws_api_gateway_integration.stocks_integrations["POST"],
-    aws_api_gateway_method.wishlist_methods["GET"],
-    aws_api_gateway_method.wishlist_methods["POST"],
-    aws_api_gateway_method.wishlist_methods["DELETE"],
-    aws_api_gateway_integration.wishlist_integrations["GET"],
-    aws_api_gateway_integration.wishlist_integrations["POST"],
-    aws_api_gateway_integration.wishlist_integrations["DELETE"]
+    aws_api_gateway_method.stocks_methods,
+    aws_api_gateway_integration.stocks_integrations,
+    aws_api_gateway_method.wishlist_methods,
+    aws_api_gateway_integration.wishlist_integrations,
+    module.cors_root,
+    module.cors_v1_proxy,
+    module.cors_login,
+    module.cors_stocks,
+    module.cors_wishlist,
   ]
-
-  rest_api_id = aws_api_gateway_rest_api.api.id
 
   triggers = {
     redeployment = sha1(jsonencode(flatten(concat([
-      aws_api_gateway_method.root_get.id,
-      aws_api_gateway_integration.root_get.id,
-      aws_api_gateway_method.any_proxy.id,
-      aws_api_gateway_integration.any_proxy.id,
-      aws_api_gateway_method.login_post.id,
-      aws_api_gateway_integration.login_post.id,
-      aws_api_gateway_method.stocks_methods["GET"].id,
-      aws_api_gateway_method.stocks_methods["POST"].id,
-      aws_api_gateway_integration.stocks_integrations["GET"].id,
-      aws_api_gateway_integration.stocks_integrations["POST"].id,
-      aws_api_gateway_method.wishlist_methods["GET"].id,
-      aws_api_gateway_method.wishlist_methods["POST"].id,
-      aws_api_gateway_method.wishlist_methods["DELETE"].id,
-      aws_api_gateway_integration.wishlist_integrations["GET"].id,
-      aws_api_gateway_integration.wishlist_integrations["POST"].id,
-      aws_api_gateway_integration.wishlist_integrations["DELETE"].id
+      [for m in aws_api_gateway_method.root_get : m.id],
+      [for i in aws_api_gateway_integration.root_get : i.id],
+      [for m in aws_api_gateway_method.any_proxy    : m.id],
+      [for i in aws_api_gateway_integration.any_proxy : i.id],
+      [for m in aws_api_gateway_method.login_post   : m.id],
+      [for i in aws_api_gateway_integration.login_post : i.id],
+
+      values({ for k, m in aws_api_gateway_method.stocks_methods : k => m.id }),
+      values({ for k, i in aws_api_gateway_integration.stocks_integrations : k => i.id }),
+
+      values({ for k, m in aws_api_gateway_method.wishlist_methods : k => m.id }),
+      values({ for k, i in aws_api_gateway_integration.wishlist_integrations : k => i.id }),
+
+      [
+        module.cors_root.cors_root_options_integration_id,
+        module.cors_v1_proxy.cors_v1_proxy_options_integration_id,
+        module.cors_login.cors_login_options_integration_id,
+        module.cors_stocks.cors_stocks_options_integration_id,
+        module.cors_wishlist.cors_wishlist_options_integration_id
+      ]
     ]))))
   }
 }
