@@ -202,8 +202,8 @@ resource "aws_api_gateway_deployment" "api_deployment" {
       aws_api_gateway_integration.wishlist_integrations["DELETE"].id
     ], var.cors_integration_ids))
   ))
+ }
 }
-
 
 resource "aws_api_gateway_stage" "api_stage" {
   deployment_id = aws_api_gateway_deployment.api_deployment.id
