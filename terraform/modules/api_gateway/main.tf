@@ -159,6 +159,10 @@ resource "aws_api_gateway_integration" "wishlist_integrations" {
 # Deployment & Stage
 # ────────────────────────────────
 
+locals {
+  cors_dependencies = var.include_cors ? var.cors_integration_ids : []
+}
+
 resource "aws_api_gateway_deployment" "api_deployment" {
   rest_api_id = aws_api_gateway_rest_api.api.id
 
@@ -178,9 +182,9 @@ resource "aws_api_gateway_deployment" "api_deployment" {
     aws_api_gateway_integration.stocks_integrations["POST"],
     aws_api_gateway_integration.wishlist_integrations["GET"],
     aws_api_gateway_integration.wishlist_integrations["POST"],
-    aws_api_gateway_integration.wishlist_integrations["DELETE"]
-  ] ++ (var.include_cors ? var.cors_integration_ids : [])
-
+    aws_api_gateway_integration.wishlist_integrations["DELETE"],
+    
+  ] 
   triggers = {
     redeployment = sha1(jsonencode(flatten([
       aws_api_gateway_method.root_get.id,
@@ -199,10 +203,11 @@ resource "aws_api_gateway_deployment" "api_deployment" {
       aws_api_gateway_integration.wishlist_integrations["GET"].id,
       aws_api_gateway_integration.wishlist_integrations["POST"].id,
       aws_api_gateway_integration.wishlist_integrations["DELETE"].id,
-      var.include_cors ? var.cors_integration_ids : []
+      local.cors_dependencies
     ])))
   }
 }
+
 
 resource "aws_api_gateway_stage" "api_stage" {
   deployment_id = aws_api_gateway_deployment.api_deployment.id
