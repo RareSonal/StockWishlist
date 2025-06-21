@@ -130,14 +130,6 @@ module "api_gateway" {
     module.cors_stocks.options_integration_id,
     module.cors_wishlist.options_integration_id,
   ]
-
-  depends_on = [
-    module.cors_root,
-    module.cors_v1_proxy,
-    module.cors_login,
-    module.cors_stocks,
-    module.cors_wishlist,
-  ]
 }
 
 # ─────────────────────────────────────────────
