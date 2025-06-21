@@ -34,3 +34,9 @@ variable "cors_integration_ids" {
   type        = list(string)
   default     = []
 }
+
+variable "include_cors" {
+  description = "Flag to include CORS integrations as deployment triggers"
+  type        = bool
+  default     = false
+}
