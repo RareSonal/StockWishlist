@@ -120,16 +120,6 @@ module "api_gateway" {
   stage_name            = var.api_stage_name
   log_group_arn         = module.cloudwatch.api_log_group_arn
   region                = var.region
-
-  include_cors = true
-
-  cors_integration_ids = [
-    module.cors_root.options_integration_id,
-    module.cors_v1_proxy.options_integration_id,
-    module.cors_login.options_integration_id,
-    module.cors_stocks.options_integration_id,
-    module.cors_wishlist.options_integration_id,
-  ]
 }
 
 # ─────────────────────────────────────────────
