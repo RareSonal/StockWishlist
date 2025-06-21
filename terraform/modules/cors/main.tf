@@ -82,22 +82,3 @@ resource "aws_api_gateway_integration_response" "options_integration_response" {
   ]
 }
 
-resource "aws_api_gateway_deployment" "cors_deployment" {
-  depends_on = [
-    aws_api_gateway_method.options,
-    aws_api_gateway_integration.options_mock,
-    aws_api_gateway_method_response.options_response,
-    aws_api_gateway_integration_response.options_integration_response
-  ]
-
-  rest_api_id = var.rest_api_id
-  triggers = {
-    redeployment = sha1(jsonencode([
-      aws_api_gateway_method.options[0].id,
-      aws_api_gateway_integration.options_mock[0].id,
-      aws_api_gateway_method_response.options_response[0].id,
-      aws_api_gateway_integration_response.options_integration_response[0].id
-    ]))
-  }
-}
-
