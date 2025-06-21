@@ -35,3 +35,6 @@ output "root_resource_id" {
   value = module.api_gateway.root_resource_id
 }
 
+output "cors_root_method_id" {
+  value = module.cors_root.method_id
+}
