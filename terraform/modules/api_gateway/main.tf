@@ -182,8 +182,7 @@ resource "aws_api_gateway_deployment" "api_deployment" {
   rest_api_id = aws_api_gateway_rest_api.api.id
 
   triggers = {
-  redeployment = sha1(jsonencode(
-    flatten(concat([
+    redeployment = sha1(jsonencode(flatten(concat([
       aws_api_gateway_method.root_get.id,
       aws_api_gateway_integration.root_get.id,
       aws_api_gateway_method.any_proxy.id,
@@ -200,9 +199,8 @@ resource "aws_api_gateway_deployment" "api_deployment" {
       aws_api_gateway_integration.wishlist_integrations["GET"].id,
       aws_api_gateway_integration.wishlist_integrations["POST"].id,
       aws_api_gateway_integration.wishlist_integrations["DELETE"].id
-    ], var.cors_integration_ids))
-  ))
- }
+    ]))))
+  }
 }
 
 resource "aws_api_gateway_stage" "api_stage" {
