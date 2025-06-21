@@ -159,34 +159,30 @@ resource "aws_api_gateway_integration" "wishlist_integrations" {
 # Deployment & Stage
 # ────────────────────────────────
 
-locals {
-  cors_dependencies = var.include_cors ? var.cors_integration_ids : []
-}
-
 resource "aws_api_gateway_deployment" "api_deployment" {
-  rest_api_id = aws_api_gateway_rest_api.api.id
-
   depends_on = [
     aws_api_gateway_method.root_get,
     aws_api_gateway_method.any_proxy,
     aws_api_gateway_method.login_post,
-    aws_api_gateway_method.stocks_methods["GET"],
-    aws_api_gateway_method.stocks_methods["POST"],
-    aws_api_gateway_method.wishlist_methods["GET"],
-    aws_api_gateway_method.wishlist_methods["POST"],
-    aws_api_gateway_method.wishlist_methods["DELETE"],
     aws_api_gateway_integration.root_get,
     aws_api_gateway_integration.any_proxy,
     aws_api_gateway_integration.login_post,
+    aws_api_gateway_method.stocks_methods["GET"],
+    aws_api_gateway_method.stocks_methods["POST"],
     aws_api_gateway_integration.stocks_integrations["GET"],
     aws_api_gateway_integration.stocks_integrations["POST"],
+    aws_api_gateway_method.wishlist_methods["GET"],
+    aws_api_gateway_method.wishlist_methods["POST"],
+    aws_api_gateway_method.wishlist_methods["DELETE"],
     aws_api_gateway_integration.wishlist_integrations["GET"],
     aws_api_gateway_integration.wishlist_integrations["POST"],
-    aws_api_gateway_integration.wishlist_integrations["DELETE"],
-    
-  ] 
+    aws_api_gateway_integration.wishlist_integrations["DELETE"]
+  ]
+
+  rest_api_id = aws_api_gateway_rest_api.api.id
+
   triggers = {
-    redeployment = sha1(jsonencode(flatten([
+    redeployment = sha1(jsonencode([
       aws_api_gateway_method.root_get.id,
       aws_api_gateway_integration.root_get.id,
       aws_api_gateway_method.any_proxy.id,
@@ -202,12 +198,10 @@ resource "aws_api_gateway_deployment" "api_deployment" {
       aws_api_gateway_method.wishlist_methods["DELETE"].id,
       aws_api_gateway_integration.wishlist_integrations["GET"].id,
       aws_api_gateway_integration.wishlist_integrations["POST"].id,
-      aws_api_gateway_integration.wishlist_integrations["DELETE"].id,
-      local.cors_dependencies
-    ])))
+      aws_api_gateway_integration.wishlist_integrations["DELETE"].id
+    ] ++ var.cors_integration_ids))
   }
 }
-
 
 resource "aws_api_gateway_stage" "api_stage" {
   deployment_id = aws_api_gateway_deployment.api_deployment.id
