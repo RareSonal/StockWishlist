@@ -40,6 +40,7 @@ output "cors_root_method_id" {
 }
 
 output "cors_root_options_integration_response_id" {
-  value = module.api_gateway.cors_root_options_integration_response_id
+  value = module.cors_root.options_integration_response_id
 }
+
 
