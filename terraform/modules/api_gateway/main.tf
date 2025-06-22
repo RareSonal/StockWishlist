@@ -173,18 +173,29 @@ resource "aws_api_gateway_deployment" "api_deployment" {
     aws_api_gateway_method.stocks_methods,
     aws_api_gateway_integration.stocks_integrations,
     aws_api_gateway_method.wishlist_methods,
-    aws_api_gateway_integration.wishlist_integrations
+    aws_api_gateway_integration.wishlist_integrations,
+
+    # Ensure CORS integrations are created before deployment
+    module.cors_root,
+    module.cors_v1_proxy,
+    module.cors_login,
+    module.cors_stocks,
+    module.cors_wishlist,
   ]
 
-  # Trigger redeployment if any method or integration changes
   triggers = {
     redeployment = sha1(jsonencode([
       aws_api_gateway_rest_api.api.id,
-      aws_api_gateway_method.root_get,
-      aws_api_gateway_method.any_proxy,
-      aws_api_gateway_method.login_post,
-      aws_api_gateway_method.stocks_methods,
-      aws_api_gateway_method.wishlist_methods
+      aws_api_gateway_method.root_get.id,
+      aws_api_gateway_method.any_proxy.*.id,
+      aws_api_gateway_method.login_post.id,
+      aws_api_gateway_method.stocks_methods.*.id,
+      aws_api_gateway_method.wishlist_methods.*.id,
+      module.cors_root.options_integration_response_id,
+      module.cors_v1_proxy.options_integration_response_id,
+      module.cors_login.options_integration_response_id,
+      module.cors_stocks.options_integration_response_id,
+      module.cors_wishlist.options_integration_response_id,
     ]))
   }
 
