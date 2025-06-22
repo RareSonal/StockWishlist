@@ -149,3 +149,64 @@ module "amplify" {
     module.cors_wishlist
   ]
 }
+
+# ─────────────────────────────────────────────
+# API GATEWAY DEPLOYMENT & STAGE (MOVED FROM MODULE)
+# ─────────────────────────────────────────────
+
+resource "aws_api_gateway_deployment" "api_deployment" {
+  rest_api_id = module.api_gateway.api_id
+
+  depends_on = [
+    module.api_gateway,
+    module.cors_root,
+    module.cors_v1_proxy,
+    module.cors_login,
+    module.cors_stocks,
+    module.cors_wishlist,
+  ]
+
+  triggers = {
+    redeployment = sha1(jsonencode([
+      module.api_gateway.api_id,
+      module.cors_root.options_integration_response_id,
+      module.cors_v1_proxy.options_integration_response_id,
+      module.cors_login.options_integration_response_id,
+      module.cors_stocks.options_integration_response_id,
+      module.cors_wishlist.options_integration_response_id,
+    ]))
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_api_gateway_stage" "api_stage" {
+  deployment_id = aws_api_gateway_deployment.api_deployment.id
+  rest_api_id   = module.api_gateway.api_id
+  stage_name    = var.api_stage_name
+
+  xray_tracing_enabled = true
+
+  access_log_settings {
+    destination_arn = module.cloudwatch.api_log_group_arn
+    format = jsonencode({
+      requestId       = "$context.requestId",
+      ip              = "$context.identity.sourceIp",
+      caller          = "$context.identity.caller",
+      user            = "$context.identity.user",
+      requestTime     = "$context.requestTime",
+      httpMethod      = "$context.httpMethod",
+      resourcePath    = "$context.resourcePath",
+      status          = "$context.status",
+      protocol        = "$context.protocol",
+      responseLength  = "$context.responseLength"
+    })
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
