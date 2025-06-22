@@ -44,28 +44,3 @@ output "stage_name" {
   description = "Stage name used in deployment"
   value       = aws_api_gateway_stage.api_stage.stage_name
 }
-
-output "cors_root_options_integration_response_id" {
-  description = "Integration Response ID for CORS OPTIONS method on root resource"
-  value       = module.cors_root.options_integration_response_id
-}
-
-output "cors_v1_proxy_options_integration_response_id" {
-  description = "Integration Response ID for CORS OPTIONS method on /v1/{proxy+} resource"
-  value       = module.cors_v1_proxy.options_integration_response_id
-}
-
-output "cors_login_options_integration_response_id" {
-  description = "Integration Response ID for CORS OPTIONS method on /v1/login resource"
-  value       = module.cors_login.options_integration_response_id
-}
-
-output "cors_stocks_options_integration_response_id" {
-  description = "Integration Response ID for CORS OPTIONS method on /v1/stocks resource"
-  value       = module.cors_stocks.options_integration_response_id
-}
-
-output "cors_wishlist_options_integration_response_id" {
-  description = "Integration Response ID for CORS OPTIONS method on /v1/wishlist resource"
-  value       = module.cors_wishlist.options_integration_response_id
-}
