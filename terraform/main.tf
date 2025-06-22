@@ -23,11 +23,11 @@ module "security_groups" {
 # DATABASE MODULE
 # ─────────────────────────────────────────────
 module "rds" {
-  source                  = "./modules/rds"
-  db_username             = var.db_username
-  db_password             = var.db_password
-  public_subnet_ids       = var.public_subnet_ids
-  security_group_id       = module.security_groups.rds_sg_id
+  source                    = "./modules/rds"
+  db_username               = var.db_username
+  db_password               = var.db_password
+  public_subnet_ids         = var.public_subnet_ids
+  security_group_id         = module.security_groups.rds_sg_id
   use_public_subnet_for_rds = var.use_public_subnet_for_rds
 }
 
@@ -59,54 +59,11 @@ module "cognito" {
 # MONITORING: CLOUDWATCH MODULE
 # ─────────────────────────────────────────────
 module "cloudwatch" {
-  source              = "./modules/cloudwatch"
+  source               = "./modules/cloudwatch"
   lambda_function_name = module.lambda.lambda_function_name
-  rds_identifier       = module.rds.rds_identifier
-  api_name             = "stockwishlist-api"
-  region               = var.region
-}
-
-# ─────────────────────────────────────────────
-# CORS CONFIGURATION MODULES
-# ─────────────────────────────────────────────
-module "cors_root" {
-  source               = "./modules/cors"
-  rest_api_id          = module.api_gateway.api_id
-  resource_id          = module.api_gateway.root_resource_id
-  create_options_method = true
-  depends_on           = [module.api_gateway]
-}
-
-module "cors_v1_proxy" {
-  source               = "./modules/cors"
-  rest_api_id          = module.api_gateway.api_id
-  resource_id          = module.api_gateway.proxy_resource_id
-  create_options_method = true
-  depends_on           = [module.api_gateway]
-}
-
-module "cors_login" {
-  source               = "./modules/cors"
-  rest_api_id          = module.api_gateway.api_id
-  resource_id          = module.api_gateway.login_resource_id
-  create_options_method = true
-  depends_on           = [module.api_gateway]
-}
-
-module "cors_stocks" {
-  source               = "./modules/cors"
-  rest_api_id          = module.api_gateway.api_id
-  resource_id          = module.api_gateway.stocks_resource_id
-  create_options_method = true
-  depends_on           = [module.api_gateway]
-}
-
-module "cors_wishlist" {
-  source               = "./modules/cors"
-  rest_api_id          = module.api_gateway.api_id
-  resource_id          = module.api_gateway.wishlist_resource_id
-  create_options_method = true
-  depends_on           = [module.api_gateway]
+  rds_identifier        = module.rds.rds_identifier
+  api_name              = "stockwishlist-api"
+  region                = var.region
 }
 
 # ─────────────────────────────────────────────
@@ -123,16 +80,59 @@ module "api_gateway" {
 }
 
 # ─────────────────────────────────────────────
+# CORS CONFIGURATION MODULES
+# ─────────────────────────────────────────────
+module "cors_root" {
+  source                 = "./modules/cors"
+  rest_api_id            = module.api_gateway.api_id
+  resource_id            = module.api_gateway.root_resource_id
+  create_options_method  = true
+  depends_on             = [module.api_gateway]
+}
+
+module "cors_v1_proxy" {
+  source                 = "./modules/cors"
+  rest_api_id            = module.api_gateway.api_id
+  resource_id            = module.api_gateway.proxy_resource_id
+  create_options_method  = true
+  depends_on             = [module.api_gateway]
+}
+
+module "cors_login" {
+  source                 = "./modules/cors"
+  rest_api_id            = module.api_gateway.api_id
+  resource_id            = module.api_gateway.login_resource_id
+  create_options_method  = true
+  depends_on             = [module.api_gateway]
+}
+
+module "cors_stocks" {
+  source                 = "./modules/cors"
+  rest_api_id            = module.api_gateway.api_id
+  resource_id            = module.api_gateway.stocks_resource_id
+  create_options_method  = true
+  depends_on             = [module.api_gateway]
+}
+
+module "cors_wishlist" {
+  source                 = "./modules/cors"
+  rest_api_id            = module.api_gateway.api_id
+  resource_id            = module.api_gateway.wishlist_resource_id
+  create_options_method  = true
+  depends_on             = [module.api_gateway]
+}
+
+# ─────────────────────────────────────────────
 # FRONTEND DEPLOYMENT: AMPLIFY MODULE
 # ─────────────────────────────────────────────
 module "amplify" {
-  source              = "./modules/amplify"
-  github_oauth_token  = var.github_oauth_token
-  repository_url      = "https://github.com/RareSonal/StockWishlist"
-  api_url             = module.api_gateway.api_url
-  cognito_user_pool_id = module.cognito.user_pool_id
-  cognito_client_id   = module.cognito.client_id
-  region              = var.region
+  source                = "./modules/amplify"
+  github_oauth_token    = var.github_oauth_token
+  repository_url        = "https://github.com/RareSonal/StockWishlist"
+  api_url               = module.api_gateway.api_url
+  cognito_user_pool_id  = module.cognito.user_pool_id
+  cognito_client_id     = module.cognito.client_id
+  region                = var.region
 
   depends_on = [
     module.api_gateway,
@@ -140,6 +140,6 @@ module "amplify" {
     module.cors_v1_proxy,
     module.cors_login,
     module.cors_stocks,
-    module.cors_wishlist,
+    module.cors_wishlist
   ]
 }
