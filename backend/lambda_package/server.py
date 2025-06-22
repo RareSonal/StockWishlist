@@ -243,4 +243,5 @@ def catch_all_options(path):
 
 # --- Lambda Entry Point ---
 def handler(event, context):
-    return awsgi.response(app, event, context)
+    return awsgi.lambda_handler(app, event, context)
+
