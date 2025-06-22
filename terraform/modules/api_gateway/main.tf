@@ -158,51 +158,26 @@ resource "aws_api_gateway_integration" "wishlist_integrations" {
 # ────────────────────────────────
 # Deployment & Stage
 # ────────────────────────────────
-
 resource "aws_api_gateway_deployment" "api_deployment" {
   rest_api_id = aws_api_gateway_rest_api.api.id
 
   depends_on = [
     aws_api_gateway_method.root_get,
-    aws_api_gateway_method.any_proxy,
-    aws_api_gateway_method.login_post,
     aws_api_gateway_integration.root_get,
+    aws_api_gateway_method.any_proxy,
     aws_api_gateway_integration.any_proxy,
+    aws_api_gateway_method.login_post,
     aws_api_gateway_integration.login_post,
     aws_api_gateway_method.stocks_methods,
     aws_api_gateway_integration.stocks_integrations,
     aws_api_gateway_method.wishlist_methods,
-    aws_api_gateway_integration.wishlist_integrations,
-    module.cors_root,
-    module.cors_v1_proxy,
-    module.cors_login,
-    module.cors_stocks,
-    module.cors_wishlist,
+    aws_api_gateway_integration.wishlist_integrations
   ]
 
   triggers = {
-    redeployment = sha1(jsonencode(flatten(concat([
-      [for m in aws_api_gateway_method.root_get : m.id],
-      [for i in aws_api_gateway_integration.root_get : i.id],
-      [for m in aws_api_gateway_method.any_proxy    : m.id],
-      [for i in aws_api_gateway_integration.any_proxy : i.id],
-      [for m in aws_api_gateway_method.login_post   : m.id],
-      [for i in aws_api_gateway_integration.login_post : i.id],
-
-      values({ for k, m in aws_api_gateway_method.stocks_methods : k => m.id }),
-      values({ for k, i in aws_api_gateway_integration.stocks_integrations : k => i.id }),
-
-      values({ for k, m in aws_api_gateway_method.wishlist_methods : k => m.id }),
-      values({ for k, i in aws_api_gateway_integration.wishlist_integrations : k => i.id }),
-
-      [
-        module.cors_root.cors_root_options_integration_id,
-        module.cors_v1_proxy.cors_v1_proxy_options_integration_id,
-        module.cors_login.cors_login_options_integration_id,
-        module.cors_stocks.cors_stocks_options_integration_id,
-        module.cors_wishlist.cors_wishlist_options_integration_id
-      ]
-    ]))))
+    redeployment = sha1(jsonencode([
+      aws_api_gateway_rest_api.api.id
+    ]))
   }
 }
 
@@ -246,4 +221,3 @@ resource "aws_lambda_permission" "apigw_to_lambda" {
 
   depends_on = [aws_api_gateway_rest_api.api]
 }
-
