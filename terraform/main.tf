@@ -4,9 +4,9 @@ provider "aws" {
 
 data "aws_caller_identity" "current" {}
 
-# ───────────────────────────────
+# ─────────────────────────────────────────────
 # SYSTEM CONFIGURATION MODULES
-# ───────────────────────────────
+# ─────────────────────────────────────────────
 module "ssm_parameters" {
   source             = "./modules/ssm_parameters"
   github_oauth_token = var.github_oauth_token
@@ -19,9 +19,9 @@ module "security_groups" {
   vpc_id = var.vpc_id
 }
 
-# ───────────────────────────────
+# ─────────────────────────────────────────────
 # DATABASE MODULE
-# ───────────────────────────────
+# ─────────────────────────────────────────────
 module "rds" {
   source                    = "./modules/rds"
   db_username               = var.db_username
@@ -31,9 +31,9 @@ module "rds" {
   use_public_subnet_for_rds = var.use_public_subnet_for_rds
 }
 
-# ───────────────────────────────
+# ─────────────────────────────────────────────
 # BACKEND: LAMBDA MODULE
-# ───────────────────────────────
+# ─────────────────────────────────────────────
 module "lambda" {
   source         = "./modules/lambda"
   subnet_ids     = var.public_subnet_ids
@@ -46,29 +46,29 @@ module "lambda" {
   region         = var.region
 }
 
-# ───────────────────────────────
+# ─────────────────────────────────────────────
 # AUTHENTICATION: COGNITO MODULE
-# ───────────────────────────────
+# ─────────────────────────────────────────────
 module "cognito" {
   source                    = "./modules/cognito"
   user_migration_lambda_arn = module.lambda.user_migration_lambda_arn
   region                    = var.region
 }
 
-# ───────────────────────────────
+# ─────────────────────────────────────────────
 # MONITORING: CLOUDWATCH MODULE
-# ───────────────────────────────
+# ─────────────────────────────────────────────
 module "cloudwatch" {
-  source                = "./modules/cloudwatch"
-  lambda_function_name  = module.lambda.lambda_function_name
-  rds_identifier        = module.rds.rds_identifier
-  api_name              = "stockwishlist-api"
-  region                = var.region
+  source               = "./modules/cloudwatch"
+  lambda_function_name = module.lambda.lambda_function_name
+  rds_identifier       = module.rds.rds_identifier
+  api_name             = "stockwishlist-api"
+  region               = var.region
 }
 
-# ───────────────────────────────
+# ─────────────────────────────────────────────
 # API GATEWAY MODULE
-# ───────────────────────────────
+# ─────────────────────────────────────────────
 module "api_gateway" {
   source                = "./modules/api_gateway"
   lambda_invoke_arn     = module.lambda.lambda_invoke_arn
@@ -79,47 +79,58 @@ module "api_gateway" {
   region                = var.region
 }
 
-# ───────────────────────────────
+# ─────────────────────────────────────────────
 # CORS CONFIGURATION MODULES
-# ───────────────────────────────
+# ─────────────────────────────────────────────
+
 module "cors_root" {
-  source                = "./modules/cors"
-  rest_api_id           = module.api_gateway.api_id
-  resource_id           = module.api_gateway.root_resource_id
-  create_options_method = true
+  source                 = "./modules/cors"
+  rest_api_id            = module.api_gateway.api_id
+  resource_id            = module.api_gateway.root_resource_id
+  create_options_method  = true
+
+  depends_on = [module.api_gateway]
 }
 
 module "cors_v1_proxy" {
-  source                = "./modules/cors"
-  rest_api_id           = module.api_gateway.api_id
-  resource_id           = module.api_gateway.proxy_resource_id
-  create_options_method = true
+  source                 = "./modules/cors"
+  rest_api_id            = module.api_gateway.api_id
+  resource_id            = module.api_gateway.proxy_resource_id
+  create_options_method  = true
+
+  depends_on = [module.api_gateway]
 }
 
 module "cors_login" {
-  source                = "./modules/cors"
-  rest_api_id           = module.api_gateway.api_id
-  resource_id           = module.api_gateway.login_resource_id
-  create_options_method = true
+  source                 = "./modules/cors"
+  rest_api_id            = module.api_gateway.api_id
+  resource_id            = module.api_gateway.login_resource_id
+  create_options_method  = true
+
+  depends_on = [module.api_gateway]
 }
 
 module "cors_stocks" {
-  source                = "./modules/cors"
-  rest_api_id           = module.api_gateway.api_id
-  resource_id           = module.api_gateway.stocks_resource_id
-  create_options_method = true
+  source                 = "./modules/cors"
+  rest_api_id            = module.api_gateway.api_id
+  resource_id            = module.api_gateway.stocks_resource_id
+  create_options_method  = true
+
+  depends_on = [module.api_gateway]
 }
 
 module "cors_wishlist" {
-  source                = "./modules/cors"
-  rest_api_id           = module.api_gateway.api_id
-  resource_id           = module.api_gateway.wishlist_resource_id
-  create_options_method = true
+  source                 = "./modules/cors"
+  rest_api_id            = module.api_gateway.api_id
+  resource_id            = module.api_gateway.wishlist_resource_id
+  create_options_method  = true
+
+  depends_on = [module.api_gateway]
 }
 
-# ───────────────────────────────
-# FRONTEND DEPLOYMENT: AMPLIFY
-# ───────────────────────────────
+# ─────────────────────────────────────────────
+# FRONTEND DEPLOYMENT: AMPLIFY MODULE
+# ─────────────────────────────────────────────
 module "amplify" {
   source               = "./modules/amplify"
   github_oauth_token   = var.github_oauth_token
