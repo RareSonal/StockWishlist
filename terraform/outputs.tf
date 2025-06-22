@@ -1,3 +1,4 @@
+
 output "rds_endpoint" {
   value = module.rds.endpoint
 }
@@ -37,4 +38,20 @@ output "root_resource_id" {
 
 output "cors_root_method_id" {
   value = module.cors_root.method_id
+}
+
+output "cors_login_method_id" {
+  value = module.cors_login.method_id
+}
+
+output "cors_stocks_method_id" {
+  value = module.cors_stocks.method_id
+}
+
+output "cors_wishlist_method_id" {
+  value = module.cors_wishlist.method_id
+}
+
+output "cors_v1_proxy_method_id" {
+  value = module.cors_v1_proxy.method_id
 }
