@@ -1,4 +1,6 @@
+# ────────────────────────────────
 # Get current AWS account info
+# ────────────────────────────────
 data "aws_caller_identity" "current" {}
 
 # ────────────────────────────────
@@ -115,10 +117,10 @@ resource "aws_api_gateway_integration" "login_post" {
 # /v1/stocks - GET, POST (Cognito-protected)
 # ────────────────────────────────
 resource "aws_api_gateway_method" "stocks_methods" {
-  for_each      = toset(["GET", "POST"])
-  rest_api_id   = aws_api_gateway_rest_api.api.id
-  resource_id   = aws_api_gateway_resource.stocks.id
-  http_method   = each.key
+  for_each    = toset(["GET", "POST"])
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  resource_id = aws_api_gateway_resource.stocks.id
+  http_method = each.key
   authorization = "COGNITO_USER_POOLS"
   authorizer_id = aws_api_gateway_authorizer.cognito_auth.id
 }
@@ -127,7 +129,7 @@ resource "aws_api_gateway_integration" "stocks_integrations" {
   for_each                = aws_api_gateway_method.stocks_methods
   rest_api_id             = aws_api_gateway_rest_api.api.id
   resource_id             = aws_api_gateway_resource.stocks.id
-  http_method             = each.value.http_method
+  http_method             = each.key
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = var.lambda_invoke_arn
@@ -137,10 +139,10 @@ resource "aws_api_gateway_integration" "stocks_integrations" {
 # /v1/wishlist - GET, POST, DELETE (Cognito-protected)
 # ────────────────────────────────
 resource "aws_api_gateway_method" "wishlist_methods" {
-  for_each      = toset(["GET", "POST", "DELETE"])
-  rest_api_id   = aws_api_gateway_rest_api.api.id
-  resource_id   = aws_api_gateway_resource.wishlist.id
-  http_method   = each.key
+  for_each    = toset(["GET", "POST", "DELETE"])
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  resource_id = aws_api_gateway_resource.wishlist.id
+  http_method = each.key
   authorization = "COGNITO_USER_POOLS"
   authorizer_id = aws_api_gateway_authorizer.cognito_auth.id
 }
@@ -149,7 +151,7 @@ resource "aws_api_gateway_integration" "wishlist_integrations" {
   for_each                = aws_api_gateway_method.wishlist_methods
   rest_api_id             = aws_api_gateway_rest_api.api.id
   resource_id             = aws_api_gateway_resource.wishlist.id
-  http_method             = each.value.http_method
+  http_method             = each.key
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = var.lambda_invoke_arn
@@ -174,10 +176,20 @@ resource "aws_api_gateway_deployment" "api_deployment" {
     aws_api_gateway_integration.wishlist_integrations
   ]
 
+  # Trigger redeployment if any method or integration changes
   triggers = {
     redeployment = sha1(jsonencode([
-      aws_api_gateway_rest_api.api.id
+      aws_api_gateway_rest_api.api.id,
+      aws_api_gateway_method.root_get,
+      aws_api_gateway_method.any_proxy,
+      aws_api_gateway_method.login_post,
+      aws_api_gateway_method.stocks_methods,
+      aws_api_gateway_method.wishlist_methods
     ]))
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
