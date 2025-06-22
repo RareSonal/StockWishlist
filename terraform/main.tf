@@ -32,7 +32,7 @@ module "rds" {
 }
 
 # ─────────────────────────────────────────────
-# BACKEND: LAMBDA MODULE
+# LAMBDA MODULE
 # ─────────────────────────────────────────────
 module "lambda" {
   source         = "./modules/lambda"
@@ -47,7 +47,7 @@ module "lambda" {
 }
 
 # ─────────────────────────────────────────────
-# AUTHENTICATION: COGNITO MODULE
+# COGNITO MODULE
 # ─────────────────────────────────────────────
 module "cognito" {
   source                    = "./modules/cognito"
@@ -56,7 +56,7 @@ module "cognito" {
 }
 
 # ─────────────────────────────────────────────
-# MONITORING: CLOUDWATCH MODULE
+# CLOUDWATCH MODULE
 # ─────────────────────────────────────────────
 module "cloudwatch" {
   source               = "./modules/cloudwatch"
@@ -84,74 +84,52 @@ module "api_gateway" {
 # ─────────────────────────────────────────────
 
 module "cors_root" {
-  source                 = "./modules/cors"
-  rest_api_id            = module.api_gateway.api_id
-  resource_id            = module.api_gateway.root_resource_id
-  create_options_method  = true
+  source                = "./modules/cors"
+  rest_api_id           = module.api_gateway.api_id
+  resource_id           = module.api_gateway.root_resource_id
+  create_options_method = true
 
   depends_on = [module.api_gateway]
 }
 
 module "cors_v1_proxy" {
-  source                 = "./modules/cors"
-  rest_api_id            = module.api_gateway.api_id
-  resource_id            = module.api_gateway.proxy_resource_id
-  create_options_method  = true
+  source                = "./modules/cors"
+  rest_api_id           = module.api_gateway.api_id
+  resource_id           = module.api_gateway.proxy_resource_id
+  create_options_method = true
 
   depends_on = [module.api_gateway]
 }
 
 module "cors_login" {
-  source                 = "./modules/cors"
-  rest_api_id            = module.api_gateway.api_id
-  resource_id            = module.api_gateway.login_resource_id
-  create_options_method  = true
+  source                = "./modules/cors"
+  rest_api_id           = module.api_gateway.api_id
+  resource_id           = module.api_gateway.login_resource_id
+  create_options_method = true
 
   depends_on = [module.api_gateway]
 }
 
 module "cors_stocks" {
-  source                 = "./modules/cors"
-  rest_api_id            = module.api_gateway.api_id
-  resource_id            = module.api_gateway.stocks_resource_id
-  create_options_method  = true
+  source                = "./modules/cors"
+  rest_api_id           = module.api_gateway.api_id
+  resource_id           = module.api_gateway.stocks_resource_id
+  create_options_method = true
 
   depends_on = [module.api_gateway]
 }
 
 module "cors_wishlist" {
-  source                 = "./modules/cors"
-  rest_api_id            = module.api_gateway.api_id
-  resource_id            = module.api_gateway.wishlist_resource_id
-  create_options_method  = true
+  source                = "./modules/cors"
+  rest_api_id           = module.api_gateway.api_id
+  resource_id           = module.api_gateway.wishlist_resource_id
+  create_options_method = true
 
   depends_on = [module.api_gateway]
 }
 
 # ─────────────────────────────────────────────
-# FRONTEND DEPLOYMENT: AMPLIFY MODULE
-# ─────────────────────────────────────────────
-module "amplify" {
-  source               = "./modules/amplify"
-  github_oauth_token   = var.github_oauth_token
-  repository_url       = "https://github.com/RareSonal/StockWishlist"
-  api_url              = module.api_gateway.api_url
-  cognito_user_pool_id = module.cognito.user_pool_id
-  cognito_client_id    = module.cognito.client_id
-  region               = var.region
-
-  depends_on = [
-    module.api_gateway,
-    module.cors_root,
-    module.cors_v1_proxy,
-    module.cors_login,
-    module.cors_stocks,
-    module.cors_wishlist
-  ]
-}
-
-# ─────────────────────────────────────────────
-# API GATEWAY DEPLOYMENT & STAGE (MOVED FROM MODULE)
+# API GATEWAY DEPLOYMENT & STAGE
 # ─────────────────────────────────────────────
 
 resource "aws_api_gateway_deployment" "api_deployment" {
@@ -192,16 +170,16 @@ resource "aws_api_gateway_stage" "api_stage" {
   access_log_settings {
     destination_arn = module.cloudwatch.api_log_group_arn
     format = jsonencode({
-      requestId       = "$context.requestId",
-      ip              = "$context.identity.sourceIp",
-      caller          = "$context.identity.caller",
-      user            = "$context.identity.user",
-      requestTime     = "$context.requestTime",
-      httpMethod      = "$context.httpMethod",
-      resourcePath    = "$context.resourcePath",
-      status          = "$context.status",
-      protocol        = "$context.protocol",
-      responseLength  = "$context.responseLength"
+      requestId      = "$context.requestId",
+      ip             = "$context.identity.sourceIp",
+      caller         = "$context.identity.caller",
+      user           = "$context.identity.user",
+      requestTime    = "$context.requestTime",
+      httpMethod     = "$context.httpMethod",
+      resourcePath   = "$context.resourcePath",
+      status         = "$context.status",
+      protocol       = "$context.protocol",
+      responseLength = "$context.responseLength"
     })
   }
 
@@ -210,3 +188,24 @@ resource "aws_api_gateway_stage" "api_stage" {
   }
 }
 
+# ─────────────────────────────────────────────
+# AMPLIFY FRONTEND MODULE
+# ─────────────────────────────────────────────
+module "amplify" {
+  source               = "./modules/amplify"
+  github_oauth_token   = var.github_oauth_token
+  repository_url       = "https://github.com/RareSonal/StockWishlist"
+  api_url              = module.api_gateway.api_url
+  cognito_user_pool_id = module.cognito.user_pool_id
+  cognito_client_id    = module.cognito.client_id
+  region               = var.region
+
+  depends_on = [
+    module.api_gateway,
+    module.cors_root,
+    module.cors_v1_proxy,
+    module.cors_login,
+    module.cors_stocks,
+    module.cors_wishlist
+  ]
+}
