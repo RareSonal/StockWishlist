@@ -9,11 +9,8 @@ import logging
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from functools import wraps
-from dotenv import load_dotenv
 import awsgi2
 
-# Load environment variables
-load_dotenv()
 
 # --- Flask App Setup ---
 app = Flask(__name__)
@@ -30,9 +27,9 @@ db_config = {
     'port': os.getenv('DB_PORT', 5432)
 }
 
-COGNITO_REGION = os.getenv("COGNITO_REGION")
-COGNITO_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
-COGNITO_APP_CLIENT_ID = os.getenv("COGNITO_APP_CLIENT_ID")
+COGNITO_REGION = os.environ["COGNITO_REGION"]
+COGNITO_POOL_ID = os.environ["COGNITO_USER_POOL_ID"]
+COGNITO_APP_CLIENT_ID = os.environ["COGNITO_APP_CLIENT_ID"]
 JWKS_URL = f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_POOL_ID}/.well-known/jwks.json"
 
 # --- Database Utilities ---
