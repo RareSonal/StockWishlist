@@ -11,7 +11,6 @@ from flask_cors import CORS
 from functools import wraps
 import awsgi2
 
-
 # --- Flask App Setup ---
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
@@ -19,18 +18,28 @@ app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.INFO)
 
 # --- Configuration ---
+def get_env_var(name, required=True, default=None):
+    value = os.getenv(name, default)
+    if required and not value:
+        app.logger.error(f"Missing required environment variable: {name}")
+        raise RuntimeError(f"Missing environment variable: {name}")
+    return value
+
 db_config = {
-    'host': os.getenv('DB_HOST'),
-    'dbname': os.getenv('DB_NAME'),
-    'user': os.getenv('DB_USER'),
-    'password': os.getenv('DB_PASSWORD'),
-    'port': os.getenv('DB_PORT', 5432)
+    'host': get_env_var('DB_HOST'),
+    'dbname': get_env_var('DB_NAME'),
+    'user': get_env_var('DB_USER'),
+    'password': get_env_var('DB_PASSWORD'),
+    'port': int(get_env_var('DB_PORT', required=False, default=5432))
 }
 
-COGNITO_REGION = os.environ["COGNITO_REGION"]
-COGNITO_POOL_ID = os.environ["COGNITO_USER_POOL_ID"]
-COGNITO_APP_CLIENT_ID = os.environ["COGNITO_APP_CLIENT_ID"]
+COGNITO_REGION = get_env_var("COGNITO_REGION")
+COGNITO_POOL_ID = get_env_var("COGNITO_USER_POOL_ID")
+COGNITO_APP_CLIENT_ID = get_env_var("COGNITO_APP_CLIENT_ID")
 JWKS_URL = f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_POOL_ID}/.well-known/jwks.json"
+
+# -- Rest of the file remains unchanged --
+# All the route definitions and handlers stay the same.
 
 # --- Database Utilities ---
 def get_db_connection():
