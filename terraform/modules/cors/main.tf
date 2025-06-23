@@ -18,16 +18,14 @@ resource "aws_api_gateway_integration" "options" {
   resource_id             = var.resource_id
   http_method             = aws_api_gateway_method.options[count.index].http_method
   type                    = "MOCK"
-  integration_http_method = "OPTIONS"
-
+  integration_http_method = "POST" 
   request_templates = {
-    "application/json" = jsonencode({
-      statusCode = 200
-    })
+    "application/json" = jsonencode({ statusCode = 200 })
   }
 
   depends_on = [aws_api_gateway_method.options]
 }
+
 
 # ─────────────────────────────────────────────
 # Method Response for OPTIONS method
@@ -72,5 +70,8 @@ resource "aws_api_gateway_integration_response" "options" {
     "application/json" = ""
   }
 
-  depends_on = [aws_api_gateway_method_response.options]
+  depends_on = [
+    aws_api_gateway_integration.options,
+    aws_api_gateway_method_response.options
+  ]
 }
