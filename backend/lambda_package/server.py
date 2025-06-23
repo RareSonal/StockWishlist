@@ -10,7 +10,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from functools import wraps
 from dotenv import load_dotenv
-import awsgi  # Lambda + Flask adapter
+import flask_awsgi as awsgi
 
 # Load environment variables
 load_dotenv()
@@ -243,5 +243,6 @@ def catch_all_options(path):
 
 # --- Lambda Entry Point ---
 def handler(event, context):
-    return awsgi.lambda_handler(app, event, context)
+    return awsgi.response(app, event, context)
+
 
