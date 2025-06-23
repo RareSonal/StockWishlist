@@ -8,6 +8,9 @@ import { applyPolyfills, defineCustomElements } from '@aws-amplify/ui-components
 
 Vue.config.productionTip = false;
 
+// ✅ Log the AWS Amplify configuration for debugging
+console.log("Amplify config", awsExports);
+
 // Configure AWS Amplify
 Amplify.configure({
   ...awsExports,
