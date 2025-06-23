@@ -82,8 +82,8 @@ export default {
 
     async trySignIn(email, password) {
       try {
-        const user = await Auth.signIn(email, password);
-        this.storeTokens(user);
+        await Auth.signIn(email, password);
+        // ✅ No need to manually store tokens — Amplify handles it
       } catch (err) {
         if (
           err.code === "UserNotFoundException" ||
@@ -91,22 +91,12 @@ export default {
         ) {
           console.warn("User may be migrating. Retrying after 1s...");
           await new Promise(resolve => setTimeout(resolve, 1000));
-          const retryUser = await Auth.signIn(email, password);
-          this.storeTokens(retryUser);
+          await Auth.signIn(email, password);
         } else {
           throw err;
         }
       }
     },
-
-    storeTokens(user) {
-      const session = user.signInUserSession;
-      localStorage.setItem("id_token", session.idToken.jwtToken);
-      localStorage.setItem("access_token", session.accessToken.jwtToken);
-      localStorage.setItem("refresh_token", session.refreshToken.token);
-    }
   }
 };
 </script>
-
-
