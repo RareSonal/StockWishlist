@@ -116,6 +116,10 @@ resource "aws_lambda_function" "flask_backend" {
       DB_PASSWORD = var.db_password
       DB_NAME     = var.db_name
       DB_PORT     = var.db_port
+
+      COGNITO_REGION       = var.region
+      COGNITO_USER_POOL_ID = var.cognito_user_pool_id
+      COGNITO_APP_CLIENT_ID = var.cognito_app_client_id
     }
   }
 }
