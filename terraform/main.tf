@@ -44,6 +44,8 @@ module "lambda" {
   db_name        = var.db_name
   db_port        = var.db_port
   region         = var.region
+  cognito_user_pool_id  = var.cognito_user_pool_id
+  cognito_app_client_id = var.cognito_app_client_id
 }
 
 # ─────────────────────────────────────────────
