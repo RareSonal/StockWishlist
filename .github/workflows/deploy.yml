@@ -89,6 +89,16 @@ jobs:
           zip -r ../../modules/lambda/build/seed-db-lambda.zip seed_db.py wishlist.sql
           cd ../..
 
+      - name: ✅ Ensure jwks.json is included in Flask Lambda Package
+        run: |
+          if [ ! -f backend/lambda_package/jwks.json ]; then
+            echo "❌ jwks.json is missing in lambda_package!"
+            exit 1
+          else
+            echo "✅ jwks.json found:"
+            ls -l backend/lambda_package/jwks.json
+          fi
+
       - name: 📦 Package Flask Backend Lambda
         run: |
           mkdir -p backend/lambda_package
