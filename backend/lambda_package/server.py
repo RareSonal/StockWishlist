@@ -1,11 +1,10 @@
 import os
 import sys
-import jwt
-import requests
-import boto3
-import psycopg2
+import json
 import logging
+import psycopg2
 
+from jose import jwt, JWTError
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from functools import wraps
@@ -22,7 +21,7 @@ def get_env_var(name, required=True, default=None):
     value = os.getenv(name, default)
     if required and not value:
         app.logger.error(f"Missing required environment variable: {name}")
-        raise RuntimeError(f"Missing environment variable: {name}")
+        raise RuntimeError(f"Missing required environment variable: {name}")
     return value
 
 db_config = {
@@ -33,13 +32,39 @@ db_config = {
     'port': int(get_env_var('DB_PORT', required=False, default=5432))
 }
 
-COGNITO_REGION = get_env_var("COGNITO_REGION")
-COGNITO_POOL_ID = get_env_var("COGNITO_USER_POOL_ID")
-COGNITO_APP_CLIENT_ID = get_env_var("COGNITO_APP_CLIENT_ID")
-JWKS_URL = f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_POOL_ID}/.well-known/jwks.json"
+COGNITO_USER_POOL_ID   = get_env_var("COGNITO_USER_POOL_ID")
+COGNITO_APP_CLIENT_ID  = get_env_var("COGNITO_APP_CLIENT_ID")
+COGNITO_REGION         = get_env_var("COGNITO_REGION")
 
-# -- Rest of the file remains unchanged --
-# All the route definitions and handlers stay the same.
+COGNITO_ISSUER = f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_USER_POOL_ID}"
+JWKS_FILE = os.path.join(os.path.dirname(__file__), 'jwks.json')
+
+# --- Load JWKS from local file ---
+try:
+    with open(JWKS_FILE, 'r') as f:
+        JWKS_KEYS = json.load(f).get('keys', [])
+    app.logger.info("✅ Loaded JWKS from jwks.json")
+except Exception as e:
+    app.logger.error(f"❌ Failed loading jwks.json: {e}")
+    JWKS_KEYS = []
+
+def get_public_key(token):
+    headers = jwt.get_unverified_header(token)
+    kid = headers.get('kid')
+    for key in JWKS_KEYS:
+        if key.get('kid') == kid:
+            return key
+    raise JWTError("Public key not found in JWKS")
+
+def verify_token(token):
+    key = get_public_key(token)
+    return jwt.decode(
+        token,
+        key,
+        algorithms=['RS256'],
+        audience=COGNITO_APP_CLIENT_ID,
+        issuer=COGNITO_ISSUER
+    )
 
 # --- Database Utilities ---
 def get_db_connection():
@@ -54,67 +79,13 @@ def get_user_id_from_email(email):
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute("SELECT id FROM users WHERE email = %s", (email,))
-                result = cur.fetchone()
-                if result:
-                    return result[0]
-                app.logger.warning(f"[DB] No user found for email: {email}")
+                res = cur.fetchone()
+                if res:
+                    return res[0]
+                app.logger.warning(f"[DB] No user for email: {email}")
                 return None
     except Exception as e:
         app.logger.error(f"[DB] Error retrieving user ID: {e}")
-        return None
-
-# --- Auth Utilities ---
-def get_jwks():
-    try:
-        response = requests.get(JWKS_URL, timeout=3)
-        response.raise_for_status()
-        return response.json()
-    except Exception as e:
-        app.logger.error(f"[Auth] Failed to fetch JWKS: {e}")
-        return None
-
-def decode_token(token):
-    try:
-        jwks = get_jwks()
-        if not jwks or "keys" not in jwks:
-            raise Exception("Invalid JWKS")
-
-        headers = jwt.get_unverified_header(token)
-        kid = headers["kid"]
-        key = next((k for k in jwks["keys"] if k["kid"] == kid), None)
-
-        if not key:
-            raise Exception("Public key not found in JWKS")
-
-        public_key = jwt.algorithms.RSAAlgorithm.from_jwk(key)
-        return jwt.decode(
-            token,
-            public_key,
-            algorithms=["RS256"],
-            audience=COGNITO_APP_CLIENT_ID,
-            issuer=f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_POOL_ID}"
-        )
-    except Exception as e:
-        app.logger.error(f"[Auth] Token decode failed: {e}")
-        return None
-
-def authenticate_user(username, password):
-    try:
-        client = boto3.client('cognito-idp', region_name=COGNITO_REGION)
-        response = client.initiate_auth(
-            ClientId=COGNITO_APP_CLIENT_ID,
-            AuthFlow='USER_PASSWORD_AUTH',
-            AuthParameters={
-                'USERNAME': username,
-                'PASSWORD': password
-            }
-        )
-        return response
-    except client.exceptions.NotAuthorizedException:
-        app.logger.warning("[Auth] Invalid username or password")
-        return None
-    except Exception as e:
-        app.logger.error(f"[Auth] Error during authentication: {e}")
         return None
 
 # --- Middleware ---
@@ -123,18 +94,19 @@ def login_required(f):
     def wrapper(*args, **kwargs):
         auth_header = request.headers.get("Authorization", "")
         token = auth_header.replace("Bearer ", "")
+        try:
+            claims = verify_token(token)
+        except Exception as e:
+            app.logger.error(f"[Auth] Token verify failed: {e}")
+            return jsonify({"error": "Unauthorized — invalid or expired token"}), 401
 
-        user = decode_token(token)
-        if not user:
-            return jsonify({"error": "Unauthorized – invalid or expired token"}), 401
-
-        email = user.get("email")
+        email = claims.get("email")
         if not email:
-            return jsonify({"error": "Unauthorized – email not present in token"}), 401
+            return jsonify({"error": "Unauthorized — token missing email"}), 401
 
         user_id = get_user_id_from_email(email)
         if not user_id:
-            return jsonify({"error": f"User with email '{email}' not found in DB"}), 404
+            return jsonify({"error": f"User '{email}' not in DB"}), 404
 
         request.user_id = user_id
         return f(*args, **kwargs)
@@ -150,24 +122,32 @@ def login():
     if request.method == 'OPTIONS':
         return '', 200
 
-    data = request.get_json()
+    from boto3 import client as boto3_client
+    data = request.get_json() or {}
     username = data.get("username")
     password = data.get("password")
-
     if not username or not password:
         return jsonify({"error": "Missing username or password"}), 400
 
-    response = authenticate_user(username, password)
-    if response:
-        tokens = response['AuthenticationResult']
+    cognito = boto3_client('cognito-idp', region_name=COGNITO_REGION)
+    try:
+        resp = cognito.initiate_auth(
+            ClientId=COGNITO_APP_CLIENT_ID,
+            AuthFlow='USER_PASSWORD_AUTH',
+            AuthParameters={'USERNAME': username, 'PASSWORD': password}
+        )
+        auth = resp.get('AuthenticationResult', {})
         return jsonify({
             "message": "Login successful",
-            "id_token": tokens['IdToken'],
-            "access_token": tokens['AccessToken'],
-            "refresh_token": tokens.get('RefreshToken')
+            "id_token": auth.get('IdToken'),
+            "access_token": auth.get('AccessToken'),
+            "refresh_token": auth.get('RefreshToken')
         }), 200
-    else:
+    except cognito.exceptions.NotAuthorizedException:
         return jsonify({"error": "Invalid credentials"}), 401
+    except Exception as e:
+        app.logger.error(f"[Auth] Login error: {e}")
+        return jsonify({"error": "Login failed"}), 500
 
 @app.route('/v1/stocks', methods=['GET'])
 @login_required
@@ -177,10 +157,10 @@ def get_stocks():
             with conn.cursor() as cur:
                 cur.execute("SELECT * FROM Stocks WHERE quantity > 0")
                 rows = cur.fetchall()
-                colnames = [desc[0] for desc in cur.description]
-                return jsonify([dict(zip(colnames, row)) for row in rows])
+                cols = [d[0] for d in cur.description]
+                return jsonify([dict(zip(cols, r)) for r in rows])
     except Exception as e:
-        app.logger.error(f"[DB] Error fetching stocks: {e}")
+        app.logger.error(f"[DB] fetch stocks failed: {e}")
         return jsonify({'error': 'Failed to retrieve stocks'}), 500
 
 @app.route('/v1/wishlist', methods=['GET'])
@@ -194,12 +174,12 @@ def get_wishlist():
                     FROM Wishlist w
                     JOIN Stocks s ON w.stock_id = s.id
                     WHERE w.user_id = %s
-                """, (request.user_id,))
+                    """, (request.user_id,))
                 rows = cur.fetchall()
-                colnames = [desc[0] for desc in cur.description]
-                return jsonify([dict(zip(colnames, row)) for row in rows])
+                cols = [d[0] for d in cur.description]
+                return jsonify([dict(zip(cols, r)) for r in rows])
     except Exception as e:
-        app.logger.error(f"[DB] Error fetching wishlist: {e}")
+        app.logger.error(f"[DB] fetch wishlist failed: {e}")
         return jsonify({'error': 'Failed to retrieve wishlist'}), 500
 
 @app.route('/v1/wishlist', methods=['POST'])
@@ -208,7 +188,6 @@ def add_to_wishlist():
     stock_id = request.get_json().get('stock_id')
     if not stock_id:
         return jsonify({'error': 'Missing stock_id'}), 400
-
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
@@ -216,13 +195,13 @@ def add_to_wishlist():
                 row = cur.fetchone()
                 if not row or row[0] <= 0:
                     return jsonify({'error': 'Stock not available'}), 400
-
-                cur.execute("INSERT INTO Wishlist (user_id, stock_id) VALUES (%s, %s)", (request.user_id, stock_id))
+                cur.execute("INSERT INTO Wishlist(user_id, stock_id) VALUES(%s, %s)",
+                            (request.user_id, stock_id))
                 cur.execute("UPDATE Stocks SET quantity = quantity - 1 WHERE id = %s", (stock_id,))
                 conn.commit()
                 return jsonify({'message': 'Stock added to wishlist'}), 200
     except Exception as e:
-        app.logger.error(f"[DB] Error adding stock to wishlist: {e}")
+        app.logger.error(f"[DB] add wishlist failed: {e}")
         return jsonify({'error': 'Failed to add to wishlist'}), 500
 
 @app.route('/v1/wishlist', methods=['DELETE'])
@@ -231,16 +210,16 @@ def remove_from_wishlist():
     stock_id = request.get_json().get('stock_id')
     if not stock_id:
         return jsonify({'error': 'Missing stock_id'}), 400
-
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute("DELETE FROM Wishlist WHERE user_id = %s AND stock_id = %s", (request.user_id, stock_id))
+                cur.execute("DELETE FROM Wishlist WHERE user_id=%s AND stock_id=%s",
+                            (request.user_id, stock_id))
                 cur.execute("UPDATE Stocks SET quantity = quantity + 1 WHERE id = %s", (stock_id,))
                 conn.commit()
                 return jsonify({'message': 'Stock removed from wishlist'}), 200
     except Exception as e:
-        app.logger.error(f"[DB] Error removing stock from wishlist: {e}")
+        app.logger.error(f"[DB] remove wishlist failed: {e}")
         return jsonify({'error': 'Failed to remove from wishlist'}), 500
 
 @app.route('/<path:path>', methods=['OPTIONS'])
@@ -250,5 +229,3 @@ def catch_all_options(path):
 # --- Lambda Entry Point ---
 def handler(event, context):
     return awsgi2.response(app, event, context)
-
-
