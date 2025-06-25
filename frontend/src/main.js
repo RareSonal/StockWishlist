@@ -21,9 +21,20 @@ Amplify.configure({
       custom_header: async () => {
         try {
           const session = await Auth.currentSession();
-          // Use ID token instead of Access token
-          const token = session.getIdToken().getJwtToken(); 
-          return { Authorization: `Bearer ${token}` };
+
+          // ✅ Retrieve tokens
+          const idToken = session.getIdToken().getJwtToken();
+          const accessToken = session.getAccessToken().getJwtToken();
+
+          // ✅ Decode and log token payloads
+          console.log("---- [ID TOKEN PAYLOAD] ----");
+          console.log(JSON.parse(atob(idToken.split('.')[1])));
+
+          console.log("---- [ACCESS TOKEN PAYLOAD] ----");
+          console.log(JSON.parse(atob(accessToken.split('.')[1])));
+
+          // Use ID token for Authorization header
+          return { Authorization: `Bearer ${idToken}` };
         } catch (err) {
           console.warn("[Amplify] No auth session found:", err.message || err);
           return {};
