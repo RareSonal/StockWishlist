@@ -66,11 +66,18 @@ export default {
     },
     async addToWishlist(stockId) {
       try {
-        await API.post('backendApi', '/wishlist', {
+        const response = await API.post('backendApi', '/wishlist', {
           body: { stock_id: stockId },
         });
-        await this.fetchWishlist();
-        await this.fetchStocks(); // Refresh stock quantity
+
+        // Use updated_stock returned by backend to update local stocks list
+        const updated = response.updated_stock;
+        const index = this.stocks.findIndex(stock => stock.id === updated.id);
+        if (index !== -1) {
+          this.$set(this.stocks, index, updated); // Vue reactive update
+        }
+
+        await this.fetchWishlist(); // Refresh wishlist only
       } catch (error) {
         this.handleAuthError(error, 'adding to wishlist');
       }
