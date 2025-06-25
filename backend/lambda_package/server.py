@@ -215,18 +215,34 @@ def add_to_wishlist():
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
+                # Check stock availability
                 cur.execute("SELECT quantity FROM Stocks WHERE id = %s", (stock_id,))
                 row = cur.fetchone()
                 if not row or row[0] <= 0:
                     return jsonify({'error': 'Stock not available'}), 400
+
+                # Add to wishlist
                 cur.execute("INSERT INTO Wishlist(user_id, stock_id) VALUES(%s, %s)",
                             (request.user_id, stock_id))
+
+                # Update quantity
                 cur.execute("UPDATE Stocks SET quantity = quantity - 1 WHERE id = %s", (stock_id,))
                 conn.commit()
-                return jsonify({'message': 'Stock added to wishlist'}), 200
+
+                # Fetch updated stock
+                cur.execute("SELECT * FROM Stocks WHERE id = %s", (stock_id,))
+                updated_stock = cur.fetchone()
+                columns = [desc[0] for desc in cur.description]
+                stock_data = dict(zip(columns, updated_stock))
+
+                return jsonify({
+                    'message': 'Stock added to wishlist',
+                    'updated_stock': stock_data
+                }), 200
     except Exception as e:
         app.logger.error(f"[DB] add wishlist failed: {e}")
         return jsonify({'error': 'Failed to add to wishlist'}), 500
+
 
 @app.route('/v1/wishlist', methods=['DELETE'])
 @login_required
