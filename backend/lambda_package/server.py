@@ -116,17 +116,19 @@ def login_required(f):
             app.logger.error(f"[Auth] Token verify failed: {e}")
             return jsonify({"error": "Unauthorized — invalid or expired token"}), 401
 
-        email = claims.get("email")
-        if not email:
-            return jsonify({"error": "Unauthorized — token missing email"}), 401
+        # Fall back to username if email is missing
+        user_email = claims.get("email") or claims.get("username")
+        if not user_email:
+            return jsonify({"error": "Unauthorized — token missing email or username"}), 401
 
-        user_id = get_user_id_from_email(email)
+        user_id = get_user_id_from_email(user_email)
         if not user_id:
-            return jsonify({"error": f"User '{email}' not in DB"}), 404
+            return jsonify({"error": f"User '{user_email}' not in DB"}), 404
 
         request.user_id = user_id
         return f(*args, **kwargs)
     return wrapper
+
 
 # --- Routes ---
 @app.route('/', methods=['GET'])
