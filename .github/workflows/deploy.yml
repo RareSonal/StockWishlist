@@ -89,6 +89,10 @@ jobs:
           zip -r ../../modules/lambda/build/seed-db-lambda.zip seed_db.py wishlist.sql
           cd ../..
 
+      - name: 🔄 Download latest JWKS from Cognito
+        run: |
+          curl -s https://cognito-idp.us-east-1.amazonaws.com/us-east-1_fUcVh3jsD/.well-known/jwks.json -o backend/lambda_package/jwks.json
+  
       - name: ✅ Ensure jwks.json is included in Flask Lambda Package
         run: |
           if [ ! -f backend/lambda_package/jwks.json ]; then
