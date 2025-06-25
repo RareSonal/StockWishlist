@@ -19,15 +19,16 @@ Amplify.configure({
     endpoints: awsExports.API.endpoints.map(endpoint => ({
       ...endpoint,
       custom_header: async () => {
-      try {
-            const session = await Auth.currentSession();
-            const token = session.getAccessToken().getJwtToken(); 
-            return { Authorization: `Bearer ${token}` };
-          } catch (err) {
-            console.warn("[Amplify] No auth session found:", err.message || err);
-            return {};
-          }
+        try {
+          const session = await Auth.currentSession();
+          // Use ID token instead of Access token
+          const token = session.getIdToken().getJwtToken(); 
+          return { Authorization: `Bearer ${token}` };
+        } catch (err) {
+          console.warn("[Amplify] No auth session found:", err.message || err);
+          return {};
         }
+      }
     }))
   }
 });
