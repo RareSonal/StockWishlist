@@ -2,9 +2,9 @@ import os
 import sys
 import json
 import logging
+import base64
 import psycopg2
 from jose import jwt, JWTError
-from jose.utils import base64url_decode
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
@@ -51,33 +51,41 @@ except Exception as e:
     app.logger.error(f"❌ Failed loading jwks.json: {e}")
     JWKS_KEYS = []
 
-def get_public_key(token):
+def base64url_decode_padding(val: str) -> bytes:
+    val += '=' * (-len(val) % 4)
+    return base64.urlsafe_b64decode(val)
+
+def get_public_key(token: str):
     headers = jwt.get_unverified_header(token)
     kid = headers.get('kid')
+    app.logger.debug(f"[Auth] Token kid: {kid}")
+    app.logger.debug(f"[Auth] Available JWKS kids: {[k.get('kid') for k in JWKS_KEYS]}")
+
     for key in JWKS_KEYS:
         if key.get('kid') == kid:
-            n = int.from_bytes(base64url_decode(key['n']), byteorder='big')
-            e = int.from_bytes(base64url_decode(key['e']), byteorder='big')
-            public_numbers = rsa.RSAPublicNumbers(e, n)
-            public_key = public_numbers.public_key(default_backend())
-            return public_key
+            try:
+                n = int.from_bytes(base64url_decode_padding(key['n']), byteorder='big')
+                e = int.from_bytes(base64url_decode_padding(key['e']), byteorder='big')
+                pub_nums = rsa.RSAPublicNumbers(e, n)
+                return pub_nums.public_key(default_backend())
+            except Exception as parse_err:
+                app.logger.error(f"[Auth] RSA public key parse error: {parse_err}")
+                raise JWTError("Malformed public key in JWKS")
     raise JWTError("Public key not found in JWKS")
 
-def verify_token(token):
+def verify_token(token: str):
     try:
         key = get_public_key(token)
-        pem_key_bytes = key.public_bytes(
+        pem_key = key.public_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
-        )
-        pem_key = pem_key_bytes.decode('utf-8')  # Convert PEM to string
-
+        ).decode('utf-8')  # ensure string
         return jwt.decode(
             token,
             pem_key,
             algorithms=['RS256'],
             issuer=COGNITO_ISSUER,
-            options={"verify_aud": False}  # Disable audience validation here
+            options={"verify_aud": False}
         )
     except Exception as e:
         app.logger.error(f"[Auth] Token verification error: {e}")
@@ -91,7 +99,7 @@ def get_db_connection():
         app.logger.error(f"[DB] Connection failed: {e}")
         raise
 
-def get_user_id_from_email(email):
+def get_user_id_from_email(email: str):
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
@@ -100,10 +108,9 @@ def get_user_id_from_email(email):
                 if res:
                     return res[0]
                 app.logger.warning(f"[DB] No user for email: {email}")
-                return None
     except Exception as e:
         app.logger.error(f"[DB] Error retrieving user ID: {e}")
-        return None
+    return None
 
 # --- Middleware ---
 def login_required(f):
@@ -117,7 +124,6 @@ def login_required(f):
             app.logger.error(f"[Auth] Token verify failed: {e}")
             return jsonify({"error": "Unauthorized — invalid or expired token"}), 401
 
-        # Fall back to username if email is missing
         user_email = claims.get("email") or claims.get("username")
         if not user_email:
             return jsonify({"error": "Unauthorized — token missing email or username"}), 401
@@ -129,7 +135,6 @@ def login_required(f):
         request.user_id = user_id
         return f(*args, **kwargs)
     return wrapper
-
 
 # --- Routes ---
 @app.route('/', methods=['GET'])
@@ -193,7 +198,7 @@ def get_wishlist():
                     FROM Wishlist w
                     JOIN Stocks s ON w.stock_id = s.id
                     WHERE w.user_id = %s
-                    """, (request.user_id,))
+                """, (request.user_id,))
                 rows = cur.fetchall()
                 cols = [d[0] for d in cur.description]
                 return jsonify([dict(zip(cols, r)) for r in rows])
