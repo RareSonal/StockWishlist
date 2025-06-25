@@ -66,10 +66,12 @@ def get_public_key(token):
 def verify_token(token):
     try:
         key = get_public_key(token)
-        pem_key = key.public_bytes(
+        pem_key_bytes = key.public_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
+        pem_key = pem_key_bytes.decode('utf-8')  # Convert PEM to string
+
         return jwt.decode(
             token,
             pem_key,
