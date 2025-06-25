@@ -74,13 +74,12 @@ def verify_token(token):
             token,
             pem_key,
             algorithms=['RS256'],
-            audience=COGNITO_APP_CLIENT_ID,
-            issuer=COGNITO_ISSUER
+            issuer=COGNITO_ISSUER,
+            options={"verify_aud": False}  # Disable audience validation here
         )
     except Exception as e:
         app.logger.error(f"[Auth] Token verification error: {e}")
         raise
-
 
 # --- Database Utilities ---
 def get_db_connection():
