@@ -22,10 +22,10 @@
           <v-card-actions>
             <v-btn
               color="primary"
-              :disabled="isInWishlist(stock.id) || stock.quantity <= 0"
+              :disabled="stock.quantity <= 0"
               @click="addToWishlist(stock.id)"
             >
-              Add to Wishlist
+            ADD 💰
             </v-btn>
           </v-card-actions>
         </v-card>
