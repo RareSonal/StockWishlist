@@ -64,24 +64,32 @@ export default {
         this.handleAuthError(error, 'fetching wishlist');
       }
     },
+    
     async addToWishlist(stockId) {
       try {
-        const response = await API.post('backendApi', '/wishlist', {
-          body: { stock_id: stockId },
-        });
+            const response = await API.post('backendApi', '/wishlist', {
+            body: { stock_id: stockId },
+          });
 
-        // Use updated_stock returned by backend to update local stocks list
-        const updated = response.updated_stock;
-        const index = this.stocks.findIndex(stock => stock.id === updated.id);
-        if (index !== -1) {
-          this.$set(this.stocks, index, updated); // Vue reactive update
+          const updated = response.updated_stock;
+          const wishlist = response.updated_wishlist;
+
+          // Update local stocks list
+          const index = this.stocks.findIndex(stock => stock.id === updated.id);
+          if (index !== -1) {
+            // Create a new array to ensure Vue detects the change
+            const newStocks = [...this.stocks];
+            newStocks[index] = updated;
+            this.stocks = newStocks;
+          }
+
+        // Update wishlist directly from response
+        this.wishlist = wishlist;
+        } catch (error) {
+            this.handleAuthError(error, 'adding to wishlist');
         }
+    }
 
-        await this.fetchWishlist(); // Refresh wishlist only
-      } catch (error) {
-        this.handleAuthError(error, 'adding to wishlist');
-      }
-    },
     async logout() {
       await Auth.signOut();
       this.$router.push('/login');
