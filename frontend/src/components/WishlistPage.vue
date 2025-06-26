@@ -20,10 +20,11 @@
           <v-card-title>{{ stock.name }}</v-card-title>
           <v-card-subtitle>Quantity: {{ stock.quantity }}</v-card-subtitle>
           <v-card-actions>
-            <v-btn 
-              color="primary" 
-              @click="addToWishlist(stock.id)" 
-              :disabled="wishlist.some(w => w.stock_id === stock.id)">
+            <v-btn
+              color="primary"
+              :disabled="isInWishlist(stock.id) || stock.quantity <= 0"
+              @click="addToWishlist(stock.id)"
+            >
               Add to Wishlist
             </v-btn>
           </v-card-actions>
@@ -63,7 +64,7 @@ export default {
     async fetchWishlist() {
       try {
         const response = await API.get('backendApi', '/wishlist');
-        this.wishlist = response;
+        this.wishlist = response.map(item => item.stock_id); // store only stock_ids for simplicity
       } catch (error) {
         this.handleAuthError(error, 'fetching wishlist');
       }
@@ -76,20 +77,24 @@ export default {
         });
 
         const updated = response.updated_stock;
-        const wishlist = response.updated_wishlist;
 
-        // Update stock list reactively
+        // Update the stocks list reactively
         const index = this.stocks.findIndex(stock => stock.id === updated.id);
         if (index !== -1) {
-          const newStocks = [...this.stocks];
-          newStocks[index] = updated;
-          this.stocks = newStocks;
+          this.$set(this.stocks, index, updated);
         }
 
-        this.wishlist = wishlist;
+        // Add the stock_id to wishlist
+        if (!this.wishlist.includes(stockId)) {
+          this.wishlist.push(stockId);
+        }
       } catch (error) {
         this.handleAuthError(error, 'adding to wishlist');
       }
+    },
+
+    isInWishlist(stockId) {
+      return this.wishlist.includes(stockId);
     },
 
     async logout() {
