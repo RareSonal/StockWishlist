@@ -22,10 +22,10 @@
           <v-card-actions>
             <v-btn
               color="primary"
-              :disabled="stock.quantity <= 0"
+              :disabled="isInWishlist(stock.id) || stock.quantity <= 0"
               @click="addToWishlist(stock.id)"
             >
-              BUY
+              Add to Wishlist
             </v-btn>
           </v-card-actions>
         </v-card>
@@ -54,7 +54,7 @@ export default {
   methods: {
     async fetchStocks() {
       try {
-        const response = await API.get('backendApi', '/v1/stocks');
+        const response = await API.get('backendApi', '/stocks');
         this.stocks = response;
       } catch (error) {
         this.handleAuthError(error, 'fetching stocks');
@@ -63,8 +63,8 @@ export default {
 
     async fetchWishlist() {
       try {
-        const response = await API.get('backendApi', '/v1/wishlist');
-        this.wishlist = response.map(item => item.stock_id); // simplified for isInWishlist if needed
+        const response = await API.get('backendApi', '/wishlist');
+        this.wishlist = response.map(item => item.stock_id); // store only stock_ids for simplicity
       } catch (error) {
         this.handleAuthError(error, 'fetching wishlist');
       }
@@ -72,24 +72,29 @@ export default {
 
     async addToWishlist(stockId) {
       try {
-        const response = await API.post('backendApi', '/v1/wishlist', {
+        const response = await API.post('backendApi', '/wishlist', {
           body: { stock_id: stockId },
         });
 
         const updated = response.updated_stock;
 
-        // Update that stock in place
+        // Update the stocks list reactively
         const index = this.stocks.findIndex(stock => stock.id === updated.id);
         if (index !== -1) {
           this.$set(this.stocks, index, updated);
         }
 
-        // Optionally refresh wishlist (in case it's used elsewhere)
-        this.wishlist = response.updated_wishlist.map(item => item.stock_id);
-
+        // Add the stock_id to wishlist
+        if (!this.wishlist.includes(stockId)) {
+          this.wishlist.push(stockId);
+        }
       } catch (error) {
         this.handleAuthError(error, 'adding to wishlist');
       }
+    },
+
+    isInWishlist(stockId) {
+      return this.wishlist.includes(stockId);
     },
 
     async logout() {
@@ -105,7 +110,7 @@ export default {
       } else {
         console.error(`Error ${action}:`, error);
       }
-    }
-  }
+    },
+  },
 };
 </script>
