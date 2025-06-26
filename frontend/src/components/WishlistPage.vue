@@ -64,7 +64,7 @@ export default {
     async fetchWishlist() {
       try {
         const response = await API.get('backendApi', '/wishlist');
-        this.wishlist = response.map(item => item.stock_id); // store only stock_ids for simplicity
+        this.wishlist = response.map(item => item.stock_id);
       } catch (error) {
         this.handleAuthError(error, 'fetching wishlist');
       }
@@ -78,16 +78,14 @@ export default {
 
         const updated = response.updated_stock;
 
-        // Update the stocks list reactively
+        // Replace stock with updated one
         const index = this.stocks.findIndex(stock => stock.id === updated.id);
         if (index !== -1) {
           this.$set(this.stocks, index, updated);
         }
 
-        // Add the stock_id to wishlist
-        if (!this.wishlist.includes(stockId)) {
-          this.wishlist.push(stockId);
-        }
+        // Replace wishlist to avoid stale state
+        this.wishlist = response.updated_wishlist.map(item => item.stock_id);
       } catch (error) {
         this.handleAuthError(error, 'adding to wishlist');
       }
