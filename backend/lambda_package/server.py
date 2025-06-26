@@ -215,17 +215,16 @@ def add_to_wishlist():
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                # Check stock availability
+                # Check availability
                 cur.execute("SELECT quantity FROM Stocks WHERE id = %s", (stock_id,))
                 row = cur.fetchone()
                 if not row or row[0] <= 0:
                     return jsonify({'error': 'Stock not available'}), 400
 
                 # Add to wishlist
-                cur.execute("INSERT INTO Wishlist(user_id, stock_id) VALUES(%s, %s)",
-                            (request.user_id, stock_id))
+                cur.execute("INSERT INTO Wishlist(user_id, stock_id) VALUES(%s, %s)", (request.user_id, stock_id))
 
-                # Update quantity
+                # Update stock quantity
                 cur.execute("UPDATE Stocks SET quantity = quantity - 1 WHERE id = %s", (stock_id,))
                 conn.commit()
 
@@ -235,9 +234,21 @@ def add_to_wishlist():
                 columns = [desc[0] for desc in cur.description]
                 stock_data = dict(zip(columns, updated_stock))
 
+                # Fetch updated wishlist
+                cur.execute("""
+                    SELECT w.user_id, s.id AS stock_id, s.name
+                    FROM Wishlist w
+                    JOIN Stocks s ON w.stock_id = s.id
+                    WHERE w.user_id = %s
+                """, (request.user_id,))
+                wishlist_rows = cur.fetchall()
+                wishlist_cols = [d[0] for d in cur.description]
+                wishlist_data = [dict(zip(wishlist_cols, r)) for r in wishlist_rows]
+
                 return jsonify({
                     'message': 'Stock added to wishlist',
-                    'updated_stock': stock_data
+                    'updated_stock': stock_data,
+                    'updated_wishlist': wishlist_data
                 }), 200
     except Exception as e:
         app.logger.error(f"[DB] add wishlist failed: {e}")
