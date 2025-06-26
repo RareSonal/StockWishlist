@@ -206,6 +206,7 @@ def get_wishlist():
         app.logger.error(f"[DB] fetch wishlist failed: {e}")
         return jsonify({'error': 'Failed to retrieve wishlist'}), 500
 
+
 @app.route('/v1/wishlist', methods=['POST'])
 @login_required
 def add_to_wishlist():
@@ -215,16 +216,20 @@ def add_to_wishlist():
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                # Check availability
+                # Check stock availability
                 cur.execute("SELECT quantity FROM Stocks WHERE id = %s", (stock_id,))
                 row = cur.fetchone()
                 if not row or row[0] <= 0:
                     return jsonify({'error': 'Stock not available'}), 400
 
-                # Add to wishlist
-                cur.execute("INSERT INTO Wishlist(user_id, stock_id) VALUES(%s, %s)", (request.user_id, stock_id))
+                # Add to wishlist (ignore if already exists)
+                cur.execute("""
+                    INSERT INTO Wishlist(user_id, stock_id) 
+                    VALUES (%s, %s)
+                    ON CONFLICT DO NOTHING
+                """, (request.user_id, stock_id))
 
-                # Update stock quantity
+                # Decrease stock quantity
                 cur.execute("UPDATE Stocks SET quantity = quantity - 1 WHERE id = %s", (stock_id,))
                 conn.commit()
 
