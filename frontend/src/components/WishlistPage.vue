@@ -20,7 +20,10 @@
           <v-card-title>{{ stock.name }}</v-card-title>
           <v-card-subtitle>Quantity: {{ stock.quantity }}</v-card-subtitle>
           <v-card-actions>
-            <v-btn color="primary" @click="addToWishlist(stock.id)">
+            <v-btn 
+              color="primary" 
+              @click="addToWishlist(stock.id)" 
+              :disabled="wishlist.some(w => w.stock_id === stock.id)">
               Add to Wishlist
             </v-btn>
           </v-card-actions>
@@ -28,7 +31,7 @@
       </v-col>
     </v-row>
 
-    <v-alert v-else>No stocks available.</v-alert>
+    <v-alert v-else type="info">No stocks available.</v-alert>
   </v-container>
 </template>
 
@@ -56,6 +59,7 @@ export default {
         this.handleAuthError(error, 'fetching stocks');
       }
     },
+
     async fetchWishlist() {
       try {
         const response = await API.get('backendApi', '/wishlist');
@@ -64,36 +68,35 @@ export default {
         this.handleAuthError(error, 'fetching wishlist');
       }
     },
-    
+
     async addToWishlist(stockId) {
       try {
-            const response = await API.post('backendApi', '/wishlist', {
-            body: { stock_id: stockId },
-          });
+        const response = await API.post('backendApi', '/wishlist', {
+          body: { stock_id: stockId },
+        });
 
-          const updated = response.updated_stock;
-          const wishlist = response.updated_wishlist;
+        const updated = response.updated_stock;
+        const wishlist = response.updated_wishlist;
 
-          // Update local stocks list
-          const index = this.stocks.findIndex(stock => stock.id === updated.id);
-          if (index !== -1) {
-            // Create a new array to ensure Vue detects the change
-            const newStocks = [...this.stocks];
-            newStocks[index] = updated;
-            this.stocks = newStocks;
-          }
-
-        // Update wishlist directly from response
-        this.wishlist = wishlist;
-        } catch (error) {
-            this.handleAuthError(error, 'adding to wishlist');
+        // Update stock list reactively
+        const index = this.stocks.findIndex(stock => stock.id === updated.id);
+        if (index !== -1) {
+          const newStocks = [...this.stocks];
+          newStocks[index] = updated;
+          this.stocks = newStocks;
         }
-    }
+
+        this.wishlist = wishlist;
+      } catch (error) {
+        this.handleAuthError(error, 'adding to wishlist');
+      }
+    },
 
     async logout() {
       await Auth.signOut();
       this.$router.push('/login');
     },
+
     async handleAuthError(error, action) {
       if (error.response && error.response.status === 401) {
         console.warn(`Unauthorized while ${action}. Signing out...`);
