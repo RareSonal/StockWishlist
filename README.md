@@ -159,10 +159,10 @@ The terraform directory deploys:
 
 To deploy:
 
-cd terraform
-terraform init
-terraform plan
-terraform apply
+- cd terraform
+- terraform init
+- terraform plan
+- terraform apply
 
 # 🧱 Tech Stack
 | Layer          | Tech                       |
