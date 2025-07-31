@@ -51,20 +51,6 @@ It supports **user login via Cognito**, a **RESTful Flask API**, and a **respons
 | `amplify`         | Vue.js frontend CI/CD with GitHub                   |
 
                                                  
-# 🧪 Terraform Usage
-Make sure AWS credentials are configured before running these commands.
-
-cd terraform
-
-- Initialize modules and backend
-terraform init
-
-- See planned changes
-terraform plan
-
-- Apply the infrastructure
-terraform apply -auto-approve
-
 # 🚀 Deployment Pipeline (CI/CD)
 1. 🔧 bootstrap-backend.yml
 
@@ -122,15 +108,15 @@ curl -X GET https://<api_url>/v1/stocks \
 
 Frontend (Amplify)
 
-cd frontend
-npm install
-npm run serve
+- cd frontend
+- npm install
+- npm run serve
 
 Backend (Lambda Flask App)
 
-cd backend/lambda_package
-pip install -r requirements.txt
-python app.py  # Run locally if needed
+- cd backend/lambda_package
+- pip install -r requirements.txt
+- python app.py  # Run locally if needed
 
 # ☁️ Cloud Setup (Terraform)
 1. Bootstrap Backend State Storage
