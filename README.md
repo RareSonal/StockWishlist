@@ -16,24 +16,24 @@ It supports **user login via Cognito**, a **RESTful Flask API**, and a **respons
 
 
                         
-                                                   ┌────────────────────┐
-                                                   │   GitHub Actions   │
-                                                   └────────┬───────────┘
-                                                            │
-                                      ┌─────────────────────┼─────────────────────┐
-                                      ▼                                           ▼
-                        ┌────────────────────────────┐               ┌────────────────────────────┐        ┌───────────────────┐
-                        │  Terraform Infrastructure  │               │ Serverless Backend (Lambda)│───────→│    Database       │
-                        │  - RDS (PostgreSQL)        │               │ - Flask Packaging (Docker) │←───────│   Postgres RDS    │
-                        │  - AWS Lambda (Flask App)  │               │ - Seed DB via Lambda       │        └───────────────────┘                                     
-                        │  - API Gateway             │               └────────────┬───────────────┘                                     
-                        │  - SSM Parameters          |                            |  
-                        │  - Cloudwatch (Logs)       │                            ▼
-                        └────────────┬───────────────┘               ┌─────────────────────────┐
-                                     |                               │  Amplify Frontend       │
-                                     └─────────────────────────────▶│ - Integrated with       │
-                                                                     │  Cognito Authentication |              
-                                                                     └─────────────────────────┘
+                                          ┌────────────────────┐
+                                          │   GitHub Actions   │
+                                          └────────┬───────────┘
+                                                   │
+                             ┌─────────────────────┼─────────────────────┐
+                             ▼                                           ▼
+              ┌────────────────────────────┐               ┌────────────────────────────┐        ┌───────────────────┐
+              │  Terraform Infrastructure  │               │ Serverless Backend (Lambda)│───────→│    Database       │
+              │  - RDS (PostgreSQL)        │               │ - Flask Packaging (Docker) │←───────│   Postgres RDS    │
+              │  - AWS Lambda (Flask App)  │               │ - Seed DB via Lambda       │        └───────────────────┘                                     
+              │  - API Gateway             │               └────────────┬───────────────┘                                     
+              │  - SSM Parameters          |                            |  
+              │  - Cloudwatch (Logs)       │                            ▼
+              └────────────┬───────────────┘               ┌─────────────────────────┐
+                           |                               │  Amplify Frontend       │
+                           └─────────────────────────────▶│ - Integrated with       │
+                                                           │  Cognito Authentication |              
+                                                           └─────────────────────────┘
                                                                    
                                                                       
                                                                       
