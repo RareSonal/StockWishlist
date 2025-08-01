@@ -22,10 +22,10 @@ It supports **user login via Cognito**, a **RESTful Flask API**, and a **respons
                                          │
                    ┌─────────────────────┼─────────────────────┐
                    ▼                                           ▼
-    ┌────────────────────────────┐               ┌────────────────────────────┐        ┌───────────────────┐
-    │  Terraform Infrastructure  │               │ Serverless Backend (Lambda)│───────→│    Database       │
-    │  - RDS (PostgreSQL)        │               │ - Flask Packaging (Docker) │←───────│   Postgres RDS    │
-    │  - AWS Lambda (Flask App)  │               │ - Seed DB via Lambda       │        └───────────────────┘                                     
+    ┌────────────────────────────┐               ┌────────────────────────────┐        ┌───────────────┐
+    │  Terraform Infrastructure  │               │ Serverless Backend (Lambda)│───────→│   Database    │
+    │  - RDS (PostgreSQL)        │               │ - Flask Packaging (Docker) │←───────│  Postgres RDS │
+    │  - AWS Lambda (Flask App)  │               │ - Seed DB via Lambda       │        └───────────────┘                                     
     │  - API Gateway             │               └────────────┬───────────────┘                                     
     │  - SSM Parameters          |                            |  
     │  - Cloudwatch (Logs)       │                            ▼
